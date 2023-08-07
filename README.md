@@ -1,1 +1,2 @@
 # files-to-qa-Azure-Functions
+> Please refer to this ChatGPT discussion to see the conversation that led to the creation of this repo: https://chat.openai.com/share/c016d102-928c-4e03-bc1c-465f024879e5

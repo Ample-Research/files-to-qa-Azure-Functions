@@ -4,6 +4,15 @@ import azure.functions as func
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
+    '''
+    CHECK_TASK_STATUS is called at intervals from the front-end to check the task status. 
+    The front-end sends a task_id via an HTTP request.
+    Then this function then performs three main tasks:
+        1. Uses the task_id to check the status of the task by extracing task_id_status JSON from a blob
+        2. Returns that task_id_status JSON to the front-end
+    Note, the front-end will handle how to actually deal with this JSON data.
+    For example, when the task is complete, the front-end must know to stop sending requests based on the JSON.
+    '''
     logging.info('Python HTTP trigger function processed a request.')
 
     name = req.params.get('name')

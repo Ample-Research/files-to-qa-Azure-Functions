@@ -4,6 +4,16 @@ import azure.functions as func
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
+    '''
+    INITIATE_FILE_PROCESSING is the entry point into this Q&A Processor. 
+    The front-end sends a PDF, DOCX, TXT, or CSV file via an HTTP request.
+    Then this function performs three main tasks:
+        1. Creates a task instance, saving task_id_status into a blob to track the task progress
+        2. Saves the raw uploaded file into an Azure Blob with a file_id
+        3. Updates the Azure Queue with the File_ID and Task_ID to trigger CONVERT_TO_JSON
+    Finally, this function returns the Task_ID back to the front-end.
+    The front-end can use this idea to track progress with the CHECK_TASK_STATUS function
+    '''
     logging.info('Python HTTP trigger function processed a request.')
 
     name = req.params.get('name')

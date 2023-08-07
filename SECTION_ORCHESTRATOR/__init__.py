@@ -14,6 +14,14 @@ import azure.durable_functions as df
 
 
 def orchestrator_function(context: df.DurableOrchestrationContext):
+    '''
+    SECTION_ORCHESTRATOR is a durable function that manages the processing of all file sections.
+    It is triggered by SPLIT_INTO_SECTIONS.
+
+    More Research Required To Define These Specs... But generally:
+        1. It triggers PROCESS_SECTION for every section
+        2. It uses a Queue to trigger COMBINE_SECTIONS once all sections have been processed
+    '''
     result1 = yield context.call_activity('Hello', "Tokyo")
     result2 = yield context.call_activity('Hello', "Seattle")
     result3 = yield context.call_activity('Hello', "London")
