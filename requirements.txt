@@ -4,3 +4,8 @@
 
 azure-functions
 azure-functions-durable
+azure-keyvault-secrets
+azure-identity
+azure-storage-queue
+azure-storage-blob
+uuid
