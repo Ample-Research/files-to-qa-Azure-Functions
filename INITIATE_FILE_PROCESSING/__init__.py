@@ -84,7 +84,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         task_status_blob_client.upload_blob(json.dumps(task_id_meta), overwrite=True)
 
         # Add message to Queue to trigger next function
-        queue_client = QueueClient.from_connection_string(queue_connection_str_secret.value, queue_name="convert-to-json-queue")
+        queue_client = QueueClient.from_connection_string(queue_connection_str_secret.value, queue_name="convert-to-txt-queue")
         queue_message = task_id_meta
         queue_client.send_message(json.dumps(queue_message))
 

@@ -9,3 +9,6 @@ azure-identity
 azure-storage-queue
 azure-storage-blob
 uuid
+pdfminer.six
+python-docx
+openai
