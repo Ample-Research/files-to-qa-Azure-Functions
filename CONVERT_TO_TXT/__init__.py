@@ -8,7 +8,6 @@ from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
 from utils.upload_to_queue import upload_to_queue
 from utils.read_from_blob import read_from_blob
-from utils.move_to_dead_letter_queue import move_to_dead_letter_queue
 
 def main(msg: func.QueueMessage) -> None:
     '''
@@ -35,9 +34,6 @@ def main(msg: func.QueueMessage) -> None:
         task_id = task_id_meta["task_id"]
         filename = task_id_meta["filename"]
         raw_text_id = task_id_meta["raw_text_id"]
-
-        if move_to_dead_letter_queue(msg, task_id_meta, "CONVERT_TO_TXT", queue_connection_str_secret, blob_connection_str_secret, 3):
-            return
 
         raw_file = read_from_blob(blob_connection_str_secret, "raw-file-uploads", file_id)
         txt_data = extract_text_from_file(raw_file, filename)
