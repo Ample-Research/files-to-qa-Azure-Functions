@@ -3,12 +3,12 @@ import json
 
 import azure.functions as func
 
-from azure.storage.blob import BlobClient
-from azure.storage.queue import QueueClient
-from azure.keyvault.secrets import SecretClient
-from azure.identity import DefaultAzureCredential
-
 from utils.extract_text_from_file import extract_text_from_file
+from utils.fetch_credentials import fetch_credentials
+from utils.upload_to_blob import upload_to_blob
+from utils.upload_to_queue import upload_to_queue
+from utils.read_from_blob import read_from_blob
+from utils.move_to_dead_letter_queue import move_to_dead_letter_queue
 
 def main(msg: func.QueueMessage) -> None:
     '''
@@ -16,62 +16,37 @@ def main(msg: func.QueueMessage) -> None:
     It is triggered by a Queue updated by INITIATE_FILE_PROCESSING.
     The Queue message will contain a File_ID and a Task_ID.
     This function performs four main tasks:
-        1. Processes the raw file (File_ID) into a JSON format
-        2. Stores this JSON in a blob under a JSON_File_ID
-        3. Updates the Azure Queue with this JSON_File_ID to trigger SPLIT_INTO_SECTIONS
+        1. Processes the raw file (File_ID) into a TXT format
+        2. Stores this JSON in a blob under a TXT_File_ID
+        3. Updates the Azure Queue with this TXT_File_ID to trigger SPLIT_INTO_SECTIONS
         4. Updates Task_ID_Status (Task_ID) to mark JSON processing as complete
     '''
     logging.info('CONVERT_TO_TXT function triggered')
 
     try:
-
-        # Fetch secrets and credentials
-        credential = DefaultAzureCredential()
-        blob_connection_str_secret = SecretClient(vault_url="https://files-to-qa-keys.vault.azure.net/", credential=credential).get_secret("BLOB-CONNECTION-STRING")
-        queue_connection_str_secret = SecretClient(vault_url="https://files-to-qa-keys.vault.azure.net/", credential=credential).get_secret("QUEUE-CONNECTION-STRING")
-
+        blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
     except Exception as e:
-        logging.error(f"Error during CONVERT_TO_JSON while getting Azure Credentials: {str(e)}")
-    
-        error_response = {
-            "status": "error",
-            "message": f"Failed to process the request. Error: {str(e)}"
-        }
-
-        return func.HttpResponse(json.dumps(error_response), status_code=500, mimetype="application/json")
+        logging.error(f"Failed to connect credentials in CONVERT_TO_TXT: {e}")
+        raise e
 
     try:
+        task_id_meta = json.loads(msg.get_body().decode('utf-8'))
+        file_id = task_id_meta["raw_file_id"]
+        task_id = task_id_meta["task_id"]
+        filename = task_id_meta["filename"]
+        raw_text_id = task_id_meta["raw_text_id"]
 
-        # Extract message from queue
-        task_data = json.loads(msg.get_body().decode('utf-8'))
-        file_id = task_data["raw_file_id"]
-        task_id = task_data["task_id"]
-        filename = task_data["filename"]
+        if move_to_dead_letter_queue(msg, task_id_meta, "CONVERT_TO_TXT", queue_connection_str_secret, blob_connection_str_secret, 3):
+            return
 
-    except Exception as e:
-        logging.error(f"Error during CONVERT_TO_JSON while reading queue message data: {str(e)}")
-    
-        error_response = {
-            "status": "error",
-            "message": f"Failed to process the request. Error: {str(e)}"
-        }
+        raw_file = read_from_blob(blob_connection_str_secret, "raw-file-uploads", file_id)
+        txt_data = extract_text_from_file(raw_file, filename)
+        upload_to_blob(txt_data, blob_connection_str_secret,"raw-text-files", raw_text_id)
 
-    try:
-
-        blob_client = BlobClient.from_connection_string(blob_connection_str_secret.value, container_name="raw-file-uploads", blob_name=file_id)
-        raw_file = blob_client.download_blob().readall()
-        json_data = extract_text_from_file(raw_file, filename)
+        task_id_meta["status"] = "txt_processed"
+        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
+        upload_to_queue(json.dumps(task_id_meta),queue_connection_str_secret, "split-sections-queue")
 
     except Exception as e:
-        logging.error(f"Error during CONVERT_TO_JSON while converting file: {str(e)}")
-    
-        error_response = {
-            "status": "error",
-            "message": f"Failed to process the request. Error: {str(e)}"
-        }
-
-    # Save to blob, update task status, trigger next function w/ queue
-
-
-    logging.info('Python queue trigger function processed a queue item: %s',
-                 msg.get_body().decode('utf-8'))
+        logging.error(f"Failed to convert to txt in CONVERT_TO_TXT: {e}")
+        raise e

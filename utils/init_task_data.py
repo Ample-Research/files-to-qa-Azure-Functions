@@ -10,7 +10,7 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename):
         # Core Meta Data
         "task_id": task_id,
         "raw_file_id": f"{task_id}_raw",
-        "json_text_id": f"{task_id}_json",
+        "raw_text_id": f"{task_id}_txt",
         "final_output_id": f"{task_id}_final",
         "user_id": config_data.get("user_id"),
         # Processing Config
