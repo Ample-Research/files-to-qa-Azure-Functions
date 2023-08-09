@@ -1,4 +1,19 @@
 import logging
+import json
+
+from azure.core.exceptions import ResourceModifiedError
+
+from utils.fetch_credentials import fetch_credentials
+from utils.upload_to_blob import upload_to_blob
+from utils.read_from_blob import read_from_blob
+from utils.upload_task_error import upload_task_error
+from utils.hardcoded_prompts import hardcoded_prompts
+
+from utils.extract_questions import extract_questions
+from utils.extract_answers import extract_answers
+from utils.extract_topic_tags import extract_topic_tags
+from utils.create_QA_JSONL_str import create_QA_JSONL_str
+from utils.retrieve_prompt_data import retrieve_prompt_data
 
 
 def main(inputData: dict) -> str:
@@ -11,17 +26,45 @@ def main(inputData: dict) -> str:
         3. Updates the SECTION_ORCHESTRATOR to mark File_ID_Section_ID as processed
         4. Updates Task_ID_Status (Task_ID) to mark this section processing as complete
     '''
+    logging.info(f'PROCESS_SECTION function triggered!')
+
     section_id = inputData["section_id"]
-    logging.info(f'PROCESS_SECTION function triggered with section: {section_id}')
+    task_id = inputData["section_id"]
 
+    try:
+        blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
+    except Exception as e:
+        logging.error(f"Failed to connect credentials in PROCESS_SECTION for section {section_id}: {e}")
+        raise e
+    
+    try:
+        
+        task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
+        task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+        section_txt_bytes = read_from_blob(blob_connection_str_secret, "file-sections", section_id)
+        section_txt = section_txt_bytes.decode('utf-8')
 
-    # Okay... This is the meat of the app
-        # Remember to update the Section Status when completed
-        # There is a chance... Depending on how long this takes
-            # That you add two rounds in the ORCHESTRATOR
-            # One for Question Processing and one for Answer Processing
-            # However, I think this will be okay...
+        prompt_names = ["question_extraction", "answer_extraction", "topic_tags_extraction"]
+        question_prompt_data, answer_prompt_data, tags_prompt_data = retrieve_prompt_data(prompt_names, blob_connection_str_secret)
 
+        section_questions = extract_questions(section_txt, task_id_meta, question_prompt_data, section_id)
+        section_answers = extract_answers(section_txt, task_id_meta, section_questions, answer_prompt_data, section_id)
+        section_tags = extract_topic_tags(section_txt, task_id_meta, tags_prompt_data, section_id)
 
+        section_QA_JSONL_str = create_QA_JSONL_str(section_questions, section_answers, task_id_meta, section_id)
+        completed_section_id = section_id + "_jsonl"
+        upload_to_blob(section_QA_JSONL_str, blob_connection_str_secret,"file-sections", completed_section_id)
+    
+
+        # NOW, YOU MUST MAKE THE FOLLOWING UPDATES TO task_id_meta IN THE BLOB
+        task_id_meta["section_tracker"][section_id] = "completed" # Mark this section as completed
+        task_id_meta["num_QA_pairs"] += len(section_questions) # Update the total Q&A count
+        task_id_meta["tags"] = ', '.join(list(set(task_id_meta["tags"] + section_tags))) # Update tags list with only new tags from this section
+
+        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
+
+    except Exception as e:
+        logging.error(f"Failed to process section in PROCESS_SECTION for section {section_id}: {e}")
+        raise e
 
     return f"Completed processing {section_id}!"

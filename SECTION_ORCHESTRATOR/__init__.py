@@ -47,7 +47,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         parallel_tasks = []
         for section_id, status in section_tracker.items():
             if status != "completed":
-                task = context.call_activity("PROCESS_SECTION", {"section_id": section_id})
+                task = context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
                 parallel_tasks.append(task)
 
         # Wait for all parallel tasks to complete
