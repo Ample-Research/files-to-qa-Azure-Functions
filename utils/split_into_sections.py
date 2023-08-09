@@ -1,7 +1,12 @@
 import nltk
-import os
+import logging
 from nltk.tokenize import sent_tokenize
-nltk.data.path.append(os.path.join(os.path.dirname("resources/nltk_data"), "resources", "nltk_data"))
+
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    logging.warning("Downloading Punkt! -- IF THIS IS NOT LOCAL, SOMETHING IS WRONG!")
+    nltk.download('punkt')
 
 def split_into_sections(text, max_words=1500, threshold_ratio=0.2):
     sentences = sent_tokenize(text)
