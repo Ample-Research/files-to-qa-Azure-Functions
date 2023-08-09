@@ -22,6 +22,8 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         1. It triggers PROCESS_SECTION for every section
         2. It uses a Queue to trigger COMBINE_SECTIONS once all sections have been processed
     '''
+    logging.info('SECTION_ORCHESTRATOR function triggered')
+
     result1 = yield context.call_activity('Hello', "Tokyo")
     result2 = yield context.call_activity('Hello', "Seattle")
     result3 = yield context.call_activity('Hello', "London")

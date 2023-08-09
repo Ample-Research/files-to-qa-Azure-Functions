@@ -13,6 +13,7 @@ from utils.upload_to_blob import upload_to_blob
 from utils.upload_to_queue import upload_to_queue
 from utils.read_from_blob import read_from_blob
 from utils.fire_orchestrator import fire_orchestrator
+from utils.split_into_sections import split_into_sections
 
 
 def main(msg: func.QueueMessage, starter: str) -> None:
@@ -36,36 +37,24 @@ def main(msg: func.QueueMessage, starter: str) -> None:
 
     try:
         
-        # # Code from CONVERT_TO_TXT
-        # task_id_meta = json.loads(msg.get_body().decode('utf-8'))
-        # file_id = task_id_meta["raw_file_id"]
-        # task_id = task_id_meta["task_id"]
-        # filename = task_id_meta["filename"]
-        # raw_text_id = task_id_meta["raw_text_id"]
-
-        # raw_file = read_from_blob(blob_connection_str_secret, "raw-file-uploads", file_id)
-        # txt_data = extract_text_from_file(raw_file, filename)
-        # upload_to_blob(txt_data, blob_connection_str_secret,"raw-text-files", raw_text_id)
-
         task_id_meta = json.loads(msg.get_body().decode('utf-8'))
         task_id = task_id_meta["task_id"]
         raw_text_id = task_id_meta["raw_text_id"] # Stored in blob: "raw-text-files"
+        raw_txt_bytes = read_from_blob(blob_connection_str_secret, "raw-text-files", raw_text_id)
+        raw_txt = raw_txt_bytes.decode('utf-8')
 
-        # PSUEDO-CODE
+        sections = split_into_sections(raw_txt)
+        section_tracker = {}
+        for idx, section in enumerate(sections):
+            this_section_id = f"{task_id}_section_{str(idx)}"
+            upload_to_blob(section, blob_connection_str_secret,"file-sections", this_section_id)
+            section_tracker[this_section_id] = "initiated"
 
-            # Split into sections
+        task_id_meta["section_tracker"] = section_tracker # To track section IDs and status
+        task_id_meta["status"] = "sections_created"
 
-            # Save each section in its own blob as "{task_id}_section_{section_number}"
-                # upload_to_blob(txt_data, blob_connection_str_secret,"file-sections", raw_text_id)
-
-            # Populate task_id_meta["section_tracker"] with each section's ID & status
-
-        task_id_meta["section_tracker"] = {} # You will need to populate this
-
-        task_id_meta["status"] = "sections_processed"
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
         instance_id = fire_orchestrator(starter, "SECTION_ORCHESTRATOR", task_id_meta["section_tracker"])
-        
         logging.info(f"Started orchestration with ID = '{instance_id}'")
 
     except Exception as e:

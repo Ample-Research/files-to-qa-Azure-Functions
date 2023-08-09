@@ -12,3 +12,4 @@ uuid
 pdfminer.six
 python-docx
 openai
+nltk

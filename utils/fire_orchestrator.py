@@ -1,4 +1,3 @@
-import logging
 from azure.durable_functions import DurableOrchestrationClient
 
 def fire_orchestrator(starter, function_name, data):
