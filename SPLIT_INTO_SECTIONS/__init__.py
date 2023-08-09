@@ -16,7 +16,7 @@ from utils.fire_orchestrator import fire_orchestrator
 from utils.split_into_sections import split_into_sections
 
 
-def main(msg: func.QueueMessage, starter: str) -> None:
+async def main(msg: func.QueueMessage, starter: str) -> None:
     '''
     SPLIT_INTO_SECTIONS enables faster processing for larger files.
     It is triggered by a Queue updated by CONVERT_TO_JSON.
@@ -54,7 +54,7 @@ def main(msg: func.QueueMessage, starter: str) -> None:
         task_id_meta["status"] = "sections_created"
 
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
-        instance_id = fire_orchestrator(starter, "SECTION_ORCHESTRATOR", task_id_meta["section_tracker"])
+        instance_id = await fire_orchestrator(starter, "SECTION_ORCHESTRATOR", task_id_meta["section_tracker"])
         logging.info(f"Started orchestration with ID = '{instance_id}'")
 
     except Exception as e:

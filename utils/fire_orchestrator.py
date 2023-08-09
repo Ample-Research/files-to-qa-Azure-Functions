@@ -1,6 +1,6 @@
 from azure.durable_functions import DurableOrchestrationClient
 
-def fire_orchestrator(starter, function_name, data):
+async def fire_orchestrator(starter, function_name, data):
     client = DurableOrchestrationClient(starter)
-    instance_id = client.start_new(function_name, None, data)
+    instance_id = await client.start_new(function_name, None, data)
     return instance_id
