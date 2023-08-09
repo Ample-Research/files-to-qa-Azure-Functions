@@ -50,8 +50,16 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                 task = context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
                 parallel_tasks.append(task)
 
-        # Wait for all parallel tasks to complete
-        yield context.task_all(parallel_tasks)
+        while parallel_tasks:
+            done_task = yield context.task_any(parallel_tasks)
+            result = done_task.result
+
+            task_id_meta["section_tracker"][result["section_id"]] = "completed"
+            task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
+            task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
+            upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
+
+            parallel_tasks.remove(done_task) # Remove completed task
 
         # Once all have been completed, call COMBINE_SECTIONS
         context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
