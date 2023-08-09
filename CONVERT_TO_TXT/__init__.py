@@ -8,6 +8,7 @@ from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
 from utils.upload_to_queue import upload_to_queue
 from utils.read_from_blob import read_from_blob
+from utils.upload_task_error import upload_task_error
 
 def main(msg: func.QueueMessage) -> None:
     '''
@@ -43,5 +44,8 @@ def main(msg: func.QueueMessage) -> None:
         upload_to_queue(json.dumps(task_id_meta),queue_connection_str_secret, "split-sections-queue")
 
     except Exception as e:
+        task_id_meta = json.loads(msg.get_body().decode('utf-8'))
+        task_id = task_id_meta["task_id"]
+        upload_task_error(task_id, "SPLIT_INTO_SECTIONS", e, blob_connection_str_secret)
         logging.error(f"Failed to convert to txt in CONVERT_TO_TXT: {e}")
         raise e

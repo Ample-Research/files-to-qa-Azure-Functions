@@ -12,6 +12,12 @@ import json
 import azure.functions as func
 import azure.durable_functions as df
 
+from utils.extract_text_from_file import extract_text_from_file
+from utils.fetch_credentials import fetch_credentials
+from utils.upload_to_blob import upload_to_blob
+from utils.upload_to_queue import upload_to_queue
+from utils.read_from_blob import read_from_blob
+from utils.upload_task_error import upload_task_error
 
 def orchestrator_function(context: df.DurableOrchestrationContext):
     '''
@@ -23,8 +29,39 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         2. It uses a Queue to trigger COMBINE_SECTIONS once all sections have been processed
     '''
     logging.info('SECTION_ORCHESTRATOR function triggered')
-    task_id_meta = context.get_input()
-    section_tracker =  task_id_meta["section_tracker"]
+
+    try:
+        blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
+    except Exception as e:
+        logging.error(f"Failed to connect credentials in SECTION_ORCHESTRATOR: {e}")
+        raise e
+    
+    try:
+
+        task_id_data_input = context.get_input()
+        task_id = task_id_data_input["task_id"]
+        task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
+        task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+        section_tracker =  task_id_meta["section_tracker"]
+
+        parallel_tasks = []
+        for section_id, status in section_tracker.items():
+            if status != "completed":
+                task = context.call_activity("PROCESS_SECTION", {"section_id": section_id})
+                parallel_tasks.append(task)
+
+        # Wait for all parallel tasks to complete
+        yield context.task_all(parallel_tasks)
+
+        # Once all have been completed, call COMBINE_SECTIONS
+        context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
+
+    except Exception as e:
+        task_id_data_input = context.get_input()
+        task_id = task_id_data_input["task_id"]
+        upload_task_error(task_id, "SECTION_ORCHESTRATOR", e, blob_connection_str_secret)
+        logging.error(f"Failed to process sections in SECTION_ORCHESTRATOR for task {task_id}: {e}")
+        raise e
 
     return "SECTION_ORCHESTRATOR Returned"
 

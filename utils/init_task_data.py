@@ -22,7 +22,6 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename):
         # Status Tracking
         "status": "initiated",
         "section_tracker": {},
-        "completion": "0%",
         "date_created": str(datetime.datetime.now()),
         "error_message": None,
         "num_QA_pairs": 0,

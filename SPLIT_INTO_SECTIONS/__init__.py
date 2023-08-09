@@ -14,6 +14,7 @@ from utils.upload_to_queue import upload_to_queue
 from utils.read_from_blob import read_from_blob
 from utils.fire_orchestrator import fire_orchestrator
 from utils.split_into_sections import split_into_sections
+from utils.upload_task_error import upload_task_error
 
 
 async def main(msg: func.QueueMessage, starter: str) -> None:
@@ -32,7 +33,7 @@ async def main(msg: func.QueueMessage, starter: str) -> None:
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
     except Exception as e:
-        logging.error(f"Failed to connect credentials in CONVERT_TO_TXT: {e}")
+        logging.error(f"Failed to connect credentials in SPLIT_INTO_SECTIONS: {e}")
         raise e
 
     try:
@@ -58,5 +59,8 @@ async def main(msg: func.QueueMessage, starter: str) -> None:
         logging.info(f"Started orchestration with ID = '{instance_id}'")
 
     except Exception as e:
+        task_id_meta = json.loads(msg.get_body().decode('utf-8'))
+        task_id = task_id_meta["task_id"]
+        upload_task_error(task_id, "SPLIT_INTO_SECTIONS", e, blob_connection_str_secret)
         logging.error(f"Failed to split & save sections in SPLIT_INTO_SECTIONS: {e}")
         raise e
