@@ -54,7 +54,7 @@ async def main(msg: func.QueueMessage, starter: str) -> None:
         task_id_meta["status"] = "sections_created"
 
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
-        instance_id = await fire_orchestrator(starter, "SECTION_ORCHESTRATOR", task_id_meta["section_tracker"])
+        instance_id = await fire_orchestrator(starter, "SECTION_ORCHESTRATOR", task_id_meta)
         logging.info(f"Started orchestration with ID = '{instance_id}'")
 
     except Exception as e:
