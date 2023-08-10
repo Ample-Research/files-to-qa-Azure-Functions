@@ -2,12 +2,14 @@ import os
 import logging
 import openai
 import time
+from tenacity import retry, wait_exponential
 
 from utils.num_tokens_from_string import num_tokens_from_string
 
 openai.api_key = os.getenv('OPEN_AI_KEY')
 
-def query_openai(prompt, model_name, retries=5):
+@retry(wait=wait_exponential(multiplier=1, min=2, max=100))
+def query_openai(prompt, model_name):
     '''
     Queries OpenAI.
     To Do: Add more parameters eventually.
@@ -23,21 +25,15 @@ def query_openai(prompt, model_name, retries=5):
 
     initial_message = [{"role": "user", "content": prompt}]
 
-    for i in range(retries):
-        try:
-            completion = openai.ChatCompletion.create(
-                model=model_name,
-                messages=initial_message,
-                max_tokens=min(max_tokens, 1500)
-            )
-            result = completion.choices[0].message['content']
-            return result
-        except Exception as e:
-            if i < retries - 1:  # i is zero indexed
-                wait_t = 2 ** i  # exponential backoff
-                logging.warning(f"Error while Querying OpenAI: {str(e)}. Retrying in {wait_t} seconds.")
-                time.sleep(wait_t)
-            else:
-                message = f"Failed OpenAI Query after {retries} retries."
-                logging.error(message)
-                raise ValueError(message)
+    try:
+        completion = openai.ChatCompletion.create(
+            model=model_name,
+            messages=initial_message,
+            max_tokens=min(max_tokens, 1500)
+        )
+        result = completion.choices[0].message['content']
+        return result
+    except Exception as e:
+        message = f"Error while Querying OpenAI: {str(e)}."
+        logging.error(message)
+        raise ValueError(message)

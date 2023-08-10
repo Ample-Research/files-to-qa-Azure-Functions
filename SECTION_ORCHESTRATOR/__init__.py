@@ -50,17 +50,23 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                 task = context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
                 parallel_tasks.append(task)
 
+        completed_tasks = set()
         while parallel_tasks:
             done_task = yield context.task_any(parallel_tasks)
+            logging.error(done_task)
+            if done_task in completed_tasks:
+                continue # Skip if already processed
             result = done_task.result
 
             task_id_meta["section_tracker"][result["section_id"]] = "completed"
             task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
             task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
             upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
-            
+            logging.error("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
             parallel_tasks.remove(done_task) # Remove completed task
+            completed_tasks.add(done_task) # Mark task as completed
 
+        logging.error("THIS IS HITTING!!! THIS IS HITTING!! THIS IS HITTING!! THIS IS HITTING!!")
         context.call_activity("COMBINE_SECTIONS", {"task_id": task_id}) # Combine once complete
 
     except Exception as e:
