@@ -28,8 +28,10 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         1. It triggers PROCESS_SECTION for every section
         2. It uses a Queue to trigger COMBINE_SECTIONS once all sections have been processed
     '''
-    logging.info(f'SECTION_ORCHESTRATOR function triggered')
-
+    task_id_data_input = context.get_input()
+    task_id = task_id_data_input["task_id"]
+    logging.info(f'SECTION_ORCHESTRATOR function triggered for task: {task_id}')
+    
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
     except Exception as e:
@@ -38,49 +40,32 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     
     try:
 
-        task_id_data_input = context.get_input()
-        task_id = task_id_data_input["task_id"]
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
         section_tracker =  task_id_meta["section_tracker"]
 
-        parallel_tasks = []
-        for section_id, status in section_tracker.items():
-            if status != "completed":
-                task = context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
-                parallel_tasks.append(task)
+        parallel_tasks = [context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
+                         for section_id, status in section_tracker.items() if status != "completed"]
 
-        while parallel_tasks:
-            logging.error(f"XXXXXXXXXXXXXXXXXXX --- Task Left: {str(len(parallel_tasks))}")
-            done_task = yield context.task_any(parallel_tasks)
-            result = done_task.result
+        yield context.task_all(parallel_tasks)
 
-            # THIS IS HITTING ONLY ONCE OR SOMETHING?? Task_Any ^^^^ Is wrong... only returns first!
-            # THIS IS HITTING ONLY ONCE OR SOMETHING??
-            # THIS IS HITTING ONLY ONCE OR SOMETHING??
-            # THIS IS HITTING ONLY ONCE OR SOMETHING??
-            # THIS IS HITTING ONLY ONCE OR SOMETHING??
+        for completed_task in parallel_tasks:
+            result = completed_task.result
+            logging.info(f"Section Task Completed In Orchestrator - Section ID: {result['section_id']}")
             task_id_meta["section_tracker"][result["section_id"]] = "completed"
             task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
             task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
-            upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
-            
-            parallel_tasks = [task for task in parallel_tasks if not task.is_completed] # Remove completed task
 
-        # THIS IS NOT HITTING
-        # THIS IS NOT HITTING
-        # THIS IS NOT HITTING
-        # THIS IS NOT HITTING
-        # THIS IS NOT HITTING
-        context.call_activity("COMBINE_SECTIONS", {"task_id": task_id}) # Combine once complete
+        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
+        
+        combine_sections_task = context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
+        yield combine_sections_task
+        logging.info(f"Sections Combined In Orchestrator - Task ID: {combine_sections_task.result['task_id']}")
 
     except Exception as e:
-        task_id_data_input = context.get_input()
-        task_id = task_id_data_input["task_id"]
-        upload_task_error(task_id, "SECTION_ORCHESTRATOR", str(e), blob_connection_str_secret)
         logging.error(f"Failed to process sections in SECTION_ORCHESTRATOR for task {task_id}: {str(e)}")
         raise e
 
-    return "SECTION_ORCHESTRATOR Returned"
+    return f"SECTION_ORCHESTRATOR Returned for {task_id}"
 
 main = df.Orchestrator.create(orchestrator_function)

@@ -18,10 +18,9 @@ def extract_questions(section_txt, task_id_meta, prompt_data, section_id):
     prompt = build_prompt(prompt_data, input_data)
     output = query_openai_chat(prompt, task_id_meta["model_name"], section_id, estimated_tokens = 700, req_name = "Question Extraction")
 
-    jsonl_pattern = r'(?:\{"question":.*?}|{\'question\':.*?})(?:\n|$)'
-    jsonl_lines = re.findall(jsonl_pattern, output, flags=re.DOTALL)
-
-    questions = [json.loads(line)["question"] for line in jsonl_lines]
+    pattern = r'"question"\s*:\s*"([^"]*?)"|\'answer\'\s*:\s*\'([^\']*?)\'' # Match the question text format
+    matches = re.findall(pattern, output, flags=re.DOTALL)
+    questions = [match[0] if match[0] else match[1] for match in matches]
 
     if len(questions) == 0:
         raise ValueError(f"No questions generated for section_id : {section_id}")

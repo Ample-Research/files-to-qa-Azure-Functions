@@ -5,7 +5,7 @@ from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
 from utils.read_from_blob import read_from_blob
 
-def main(inputData: dict) -> str:
+def main(inputData: dict) -> dict:
     '''
     COMBINE_SECTIONS will combined each section's JSONL into a single output file.
     It is triggered by SECTION_ORCHESTRATOR once each section is complete.
@@ -28,9 +28,8 @@ def main(inputData: dict) -> str:
         
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
-        logging.info(task_id_meta)
 
-        return f"JUST TESTING -- NOT IMPLEMENTED!! {task_id}!"
+        return {"task_id": task_id}
 
     except Exception as e:
         logging.error(f"Failed to combine sections in COMBINE_SECTIONS for task {task_id}: {str(e)}")

@@ -31,10 +31,9 @@ def extract_answers(section_txt, task_id_meta, questions, prompt_data, section_i
     prompt = build_prompt(prompt_data, inputs_data)
     output = query_openai_chat(prompt, model_name, section_id, estimated_tokens = 5000, req_name = "Answer Extraction")
 
-    jsonl_pattern = r'(?:\{"question":.*?}|{\'question\':.*?})(?:\n|$)' # Match the JSONL format
-    jsonl_lines = re.findall(jsonl_pattern, output, flags=re.DOTALL)
-
-    answers = [json.loads(line)["answer"] for line in jsonl_lines]
+    pattern = r'"answer"\s*:\s*"([^"]*?)"|\'answer\'\s*:\s*\'([^\']*?)\'' # Match the answer text format
+    matches = re.findall(pattern, output, flags=re.DOTALL)
+    answers = [match[0] if match[0] else match[1] for match in matches]
 
     if len(answers) == 0:
         raise ValueError(f"No answers generated for section_id : {section_id}")
