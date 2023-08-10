@@ -20,8 +20,8 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename):
         "answer_tone": config_data["answer_tone"],
         "QA_examples": config_data["QA_examples"],
         "model_name": config_data["model_name"],
-        "model_name": config_data["start_sequence"],
-        "model_name": config_data["stop_sequence"],
+        "start_sequence": config_data["start_sequence"],
+        "stop_sequence": config_data["stop_sequence"],
         # Status Tracking
         "status": "initiated",
         "section_tracker": {},

@@ -33,7 +33,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
     except Exception as e:
-        logging.error(f"Failed to connect credentials in SECTION_ORCHESTRATOR: {e}")
+        logging.error(f"Failed to connect credentials in SECTION_ORCHESTRATOR: {str(e)}")
         raise e
     
     try:
@@ -58,17 +58,16 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
             task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
             task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
             upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
-
+            
             parallel_tasks.remove(done_task) # Remove completed task
 
-        # Once all have been completed, call COMBINE_SECTIONS
-        context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
+        context.call_activity("COMBINE_SECTIONS", {"task_id": task_id}) # Combine once complete
 
     except Exception as e:
         task_id_data_input = context.get_input()
         task_id = task_id_data_input["task_id"]
-        upload_task_error(task_id, "SECTION_ORCHESTRATOR", e, blob_connection_str_secret)
-        logging.error(f"Failed to process sections in SECTION_ORCHESTRATOR for task {task_id}: {e}")
+        upload_task_error(task_id, "SECTION_ORCHESTRATOR", str(e), blob_connection_str_secret)
+        logging.error(f"Failed to process sections in SECTION_ORCHESTRATOR for task {task_id}: {str(e)}")
         raise e
 
     return "SECTION_ORCHESTRATOR Returned"

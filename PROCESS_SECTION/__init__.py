@@ -4,8 +4,6 @@ import json
 from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
 from utils.read_from_blob import read_from_blob
-from utils.upload_task_error import upload_task_error
-from utils.hardcoded_prompts import hardcoded_prompts
 
 from utils.extract_questions import extract_questions
 from utils.extract_answers import extract_answers
@@ -32,7 +30,7 @@ def main(inputData: dict) -> dict:
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
     except Exception as e:
-        logging.error(f"Failed to connect credentials in PROCESS_SECTION for section {section_id}: {e}")
+        logging.error(f"Failed to connect credentials in PROCESS_SECTION for section {section_id}: {str(e)}")
         raise e
     
     try:
@@ -62,5 +60,5 @@ def main(inputData: dict) -> dict:
         return task_id_meta_updates
 
     except Exception as e:
-        logging.error(f"Failed to process section in PROCESS_SECTION for section {section_id}: {e}")
+        logging.error(f"Failed to process section in PROCESS_SECTION for section {section_id}: {str(e)}")
         raise e

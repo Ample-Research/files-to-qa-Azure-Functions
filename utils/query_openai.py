@@ -1,14 +1,18 @@
+import os
 import logging
 import openai
 import time
 
 from utils.num_tokens_from_string import num_tokens_from_string
 
-def query_openai(prompt, model_name, retries=5, type_of_call="NoType"):
+openai.api_key = os.getenv('OPEN_AI_KEY')
+
+def query_openai(prompt, model_name, retries=5):
     '''
     Queries OpenAI.
     To Do: Add more parameters eventually.
     '''
+
     num_tokens = num_tokens_from_string(prompt)
     max_tokens = (4000 - num_tokens) # Tokenize to avoid breaking request with too large of a token request
 
@@ -31,7 +35,7 @@ def query_openai(prompt, model_name, retries=5, type_of_call="NoType"):
         except Exception as e:
             if i < retries - 1:  # i is zero indexed
                 wait_t = 2 ** i  # exponential backoff
-                logging.warning(f"Error while Querying OpenAI: {e}. Retrying in {wait_t} seconds.")
+                logging.warning(f"Error while Querying OpenAI: {str(e)}. Retrying in {wait_t} seconds.")
                 time.sleep(wait_t)
             else:
                 message = f"Failed OpenAI Query after {retries} retries."

@@ -26,7 +26,7 @@ def main(msg: func.QueueMessage) -> None:
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
     except Exception as e:
-        logging.error(f"Failed to connect credentials in CONVERT_TO_TXT: {e}")
+        logging.error(f"Failed to connect credentials in CONVERT_TO_TXT: {str(e)}")
         raise e
 
     try:
@@ -47,5 +47,5 @@ def main(msg: func.QueueMessage) -> None:
         task_id_meta = json.loads(msg.get_body().decode('utf-8'))
         task_id = task_id_meta["task_id"]
         upload_task_error(task_id, "SPLIT_INTO_SECTIONS", e, blob_connection_str_secret)
-        logging.error(f"Failed to convert to txt in CONVERT_TO_TXT: {e}")
+        logging.error(f"Failed to convert to txt in CONVERT_TO_TXT: {str(e)}")
         raise e
