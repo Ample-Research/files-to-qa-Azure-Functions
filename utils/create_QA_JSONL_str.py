@@ -1,8 +1,10 @@
 import json
+import logging
 
 def create_QA_JSONL_str(questions, answers, task_id_meta, section_id):
+
     if len(questions) != len(answers):
-        raise ValueError(f"Questions and answers must be the same length! Failed to create JSONL for section: {section_id}")
+        raise ValueError(f"Failed to create JSONL for section: {section_id} -- Questions and answers must be the same length! (Q: {len(questions)}  A: {len(answers)})")
 
     start_sequence = task_id_meta["start_sequence"]
     stop_sequence = task_id_meta["stop_sequence"]

@@ -44,7 +44,7 @@ def main(inputData: dict) -> dict:
         question_prompt_data, answer_prompt_data, tags_prompt_data = retrieve_prompt_data(prompt_names, blob_connection_str_secret)
 
         section_questions = extract_questions(section_txt, task_id_meta, question_prompt_data, section_id)
-        section_answers = extract_answers(section_txt, task_id_meta, section_questions, answer_prompt_data, section_id)
+        section_answers = extract_answers(section_txt, task_id_meta, section_questions, answer_prompt_data, section_id, blob_connection_str_secret)
         section_tags = extract_topic_tags(section_txt, task_id_meta, tags_prompt_data, section_id)
 
         section_QA_JSONL_str = create_QA_JSONL_str(section_questions, section_answers, task_id_meta, section_id)

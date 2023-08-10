@@ -28,7 +28,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         1. It triggers PROCESS_SECTION for every section
         2. It uses a Queue to trigger COMBINE_SECTIONS once all sections have been processed
     '''
-    logging.info('SECTION_ORCHESTRATOR function triggered')
+    logging.info(f'SECTION_ORCHESTRATOR function triggered')
 
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
@@ -50,23 +50,28 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                 task = context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
                 parallel_tasks.append(task)
 
-        completed_tasks = set()
         while parallel_tasks:
+            logging.error(f"XXXXXXXXXXXXXXXXXXX --- Task Left: {str(len(parallel_tasks))}")
             done_task = yield context.task_any(parallel_tasks)
-            logging.error(done_task)
-            if done_task in completed_tasks:
-                continue # Skip if already processed
             result = done_task.result
 
+            # THIS IS HITTING ONLY ONCE OR SOMETHING?? Task_Any ^^^^ Is wrong... only returns first!
+            # THIS IS HITTING ONLY ONCE OR SOMETHING??
+            # THIS IS HITTING ONLY ONCE OR SOMETHING??
+            # THIS IS HITTING ONLY ONCE OR SOMETHING??
+            # THIS IS HITTING ONLY ONCE OR SOMETHING??
             task_id_meta["section_tracker"][result["section_id"]] = "completed"
             task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
             task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
             upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
-            logging.error("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-            parallel_tasks.remove(done_task) # Remove completed task
-            completed_tasks.add(done_task) # Mark task as completed
+            
+            parallel_tasks = [task for task in parallel_tasks if not task.is_completed] # Remove completed task
 
-        logging.error("THIS IS HITTING!!! THIS IS HITTING!! THIS IS HITTING!! THIS IS HITTING!!")
+        # THIS IS NOT HITTING
+        # THIS IS NOT HITTING
+        # THIS IS NOT HITTING
+        # THIS IS NOT HITTING
+        # THIS IS NOT HITTING
         context.call_activity("COMBINE_SECTIONS", {"task_id": task_id}) # Combine once complete
 
     except Exception as e:

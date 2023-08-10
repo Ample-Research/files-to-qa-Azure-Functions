@@ -22,6 +22,13 @@ Here is the document:
 <!-- Begin Document --> 
 {article_text} 
 <!-- End Document -->
+<!-- Begin Final Call To Action -->
+Please format your questions as JSONL like this:
+{"question":"QUESTION_A"}
+{"question":"QUESTION_B"}
+{"question":"QUESTION_C"}
+...
+<!-- End Final Call To Action -->
 """
         prompt_data["inputs"] = "article_text, end_use, QA_examples"
 
@@ -31,7 +38,7 @@ Here is the document:
     elif prompt_name == "answer_extraction":
         
         prompt_data["prompt"] = """<!-- Begin Instructions --> 
-As an advanced NLP model, you have the capacity to extract key information from complex text and communicate it as if you are an expert on the subject. This is your task now. Having been given a question related to the document provided below, your next responsibility is to find the answer. You should consider the question asked and delve into the document to extract the information necessary to answer it. The document could be from any field. Your responses should align with the tone requested below. 
+As an advanced NLP model, you have the capacity to extract key information from complex text and communicate it as if you are an expert on the subject. This is your task now. Having been given a list of questions related to the document provided below, your next responsibility is to find the answers. You should consider each question asked and delve into the document to extract the information necessary to answer it. The document could be from any field. Your responses should align with the tone requested below. 
 
 The desired tone for your responses is: 
 {answer_tone} 
@@ -44,8 +51,8 @@ Here are a few examples of Question-Answer pairs to help guide you:
 Ultimately, your answers will be used to train a Q&A language model thats end use is as follows: 
 {end_use} 
 
-Here is the question you are to answer: 
-{question} 
+Here are the questions you must answer: 
+{jsonl_questions}
 
 Here is the document:
 <!-- End Instructions --> 
@@ -53,10 +60,10 @@ Here is the document:
 {article_text} 
 <!-- End Document --> 
 <!-- Begin Final Call To Action -->
-Please provide well-informed, comprehensive, and engaging answers to the question.
+Please provide well-informed, comprehensive, and engaging answers to the questions. Maintain the same JSONL format in your response.
 <!-- End Final Call To Action -->
 """
-        prompt_data["inputs"] = "article_text, question, end_use, answer_tone, QA_examples"
+        prompt_data["inputs"] = "article_text, jsonl_questions, end_use, answer_tone, QA_examples"
 
 
 # TAGS EXTRACTION PROMPT ----------------------------------------------------------------------

@@ -1,7 +1,9 @@
 import re
+import json
+import logging
 
 from utils.build_prompt import build_prompt
-from utils.query_openai import query_openai
+from utils.query_openai import query_openai_chat
 
 def extract_questions(section_txt, task_id_meta, prompt_data, section_id):
     '''
@@ -14,12 +16,12 @@ def extract_questions(section_txt, task_id_meta, prompt_data, section_id):
         "QA_examples": task_id_meta["QA_examples"]
     }
     prompt = build_prompt(prompt_data, input_data)
-    output = query_openai(prompt, task_id_meta["model_name"])
+    output = query_openai_chat(prompt, task_id_meta["model_name"], section_id, estimated_tokens = 700, req_name = "Question Extraction")
 
-    questions = output.strip().replace('"', "").replace('- ', "") # Clean out double quotes and dashes
-    questions = questions.split('\n') # Split into list based on \n
-    questions = list(filter(None, questions)) # Filter out questions with no text
-    questions = [re.sub(r'^[^a-zA-Z]*', '', question) for question in questions] # Clean questions beginning with 1. 2. 3....
+    jsonl_pattern = r'(?:\{"question":.*?}|{\'question\':.*?})(?:\n|$)'
+    jsonl_lines = re.findall(jsonl_pattern, output, flags=re.DOTALL)
+
+    questions = [json.loads(line)["question"] for line in jsonl_lines]
 
     if len(questions) == 0:
         raise ValueError(f"No questions generated for section_id : {section_id}")
