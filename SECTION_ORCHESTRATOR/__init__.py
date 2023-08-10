@@ -42,7 +42,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
 
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
-        section_tracker =  task_id_meta["section_tracker"]
+        section_tracker = task_id_meta["section_tracker"]
 
         parallel_tasks = [context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
                          for section_id, status in section_tracker.items() if status != "completed"]
@@ -58,12 +58,10 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
 
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
         
-        combine_sections_task = context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
-        yield combine_sections_task
-        logging.info(f"Sections Combined In Orchestrator - Task ID: {combine_sections_task.result['task_id']}")
+        combine_sections_task = yield context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
 
     except Exception as e:
-        logging.error(f"Failed to process sections in SECTION_ORCHESTRATOR for task {task_id}: {str(e)}")
+        logging.error(f"Exeption raised in SECTION_ORCHESTRATOR for task {task_id}: {str(e)}")
         raise e
 
     return f"SECTION_ORCHESTRATOR Returned for {task_id}"
