@@ -5,17 +5,19 @@ from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
 from utils.read_from_blob import read_from_blob
 
+from utils.validate_jsonl_format import validate_jsonl_format
+
 def main(inputData: dict) -> dict:
     '''
     COMBINE_SECTIONS will combined each section's JSONL into a single output file.
     It is triggered by SECTION_ORCHESTRATOR once each section is complete.
     This function performs three main tasks:
-        1. Combines each section JSONL into a single large JSONL file
+        1. Combines each section JSONL string into a single large JSONL file
+        2. Validates and corrects the format
         2. Stores this final JSONL file inot a blob as the final result
         3. Updates Task_ID_Status (Task_ID) to mark processing as complete & gives it the Final File_ID
     '''
     logging.info(f'COMBINE_SECTIONS function triggered!')
-
     task_id = inputData["task_id"]
 
     try:
@@ -28,6 +30,22 @@ def main(inputData: dict) -> dict:
         
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+        section_ids = task_id_meta["section_tracker"]
+        completed_section_ids = [key + "_jsonl" for key, value in section_ids.items() if value == "completed"]
+
+        combined_jsonl = ""
+        for jsonl_section_id in completed_section_ids:
+            section_content_bytes = read_from_blob(blob_connection_str_secret, "file-sections", jsonl_section_id)
+            combined_jsonl += section_content_bytes.decode('utf-8') + "\n"
+        
+        final_jsonl_str = validate_jsonl_format(combined_jsonl, task_id)
+
+        final_file_id = task_id_meta["final_output_id"]
+        task_id_meta["status"] = "completed"
+        upload_to_blob(final_jsonl_str, blob_connection_str_secret, "final-processed-results", final_file_id)
+        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
+
+        logging.info(f'COMBINE_SECTIONS function for task {task_id} successfully completed!')
 
         return {"task_id": task_id}
 

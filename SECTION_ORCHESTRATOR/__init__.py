@@ -56,14 +56,15 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
             task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
             task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
 
+        task_id_meta["status"] = "sections_processed"
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
         
         combine_sections_task = yield context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
 
+        return f"SECTION_ORCHESTRATOR Returned for {task_id}"
+
     except Exception as e:
         logging.error(f"Exeption raised in SECTION_ORCHESTRATOR for task {task_id}: {str(e)}")
         raise e
-
-    return f"SECTION_ORCHESTRATOR Returned for {task_id}"
 
 main = df.Orchestrator.create(orchestrator_function)
