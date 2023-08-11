@@ -22,7 +22,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
-        blob_service_client = BlobServiceClient.from_connection_string(blob_connection_str_secret)
     except Exception as e:
         return create_error_msg(e, note="Failed credentials in INITIATE_FILE_PROCESSING")
 
@@ -33,9 +32,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
 
-        # Look at each section id and determine if a _jsonl file exists in blob
+        blob_connection_str = blob_connection_str_secret.value
+        blob_service_client = BlobServiceClient.from_connection_string(blob_connection_str)
         section_ids = task_id_meta["section_tracker"]
-        for section_id in section_ids.keys():
+        for section_id in section_ids.keys(): # Look at each section id and determine if a _jsonl file exists in blob
             jsonl_id = section_id + "_jsonl"
             blob_client = blob_service_client.get_blob_client(container="file-sections", blob=jsonl_id)
             if blob_client.exists():
