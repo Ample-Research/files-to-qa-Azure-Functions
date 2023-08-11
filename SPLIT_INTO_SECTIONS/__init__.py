@@ -54,9 +54,11 @@ async def main(msg: func.QueueMessage, starter: str) -> None:
         task_id_meta["section_tracker"] = section_tracker # To track section IDs and status
         task_id_meta["status"] = "sections_created"
 
-        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
         instance_id = await fire_orchestrator(starter, "SECTION_ORCHESTRATOR", task_id_meta)
         logging.info(f"Started orchestration with ID = '{instance_id}'")
+        task_id_meta["orchestrator_id"] = instance_id
+        
+        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
 
     except Exception as e:
         task_id_meta = json.loads(msg.get_body().decode('utf-8'))

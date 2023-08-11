@@ -30,7 +30,8 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename):
         "num_QA_pairs": 0,
         "processing_time": 0,
         "file_size_in_bytes": file_size_in_bytes,
-        "filename": filename
+        "filename": filename,
+        "orchestrator_id": ""
     }
     
     return task_id_meta_data
