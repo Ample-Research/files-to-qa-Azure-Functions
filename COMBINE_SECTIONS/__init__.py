@@ -51,4 +51,6 @@ def main(inputData: dict) -> dict:
 
     except Exception as e:
         logging.error(f"Failed to combine sections in COMBINE_SECTIONS for task {task_id}: {str(e)}")
+        task_id_meta["error_message"] = str(e)
+        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
         raise e

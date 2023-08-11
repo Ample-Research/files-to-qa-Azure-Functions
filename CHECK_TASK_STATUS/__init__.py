@@ -2,10 +2,12 @@ import logging
 import json
 
 import azure.functions as func
+from azure.storage.blob import BlobServiceClient
 
 from utils.create_error_msg import create_error_msg
 from utils.fetch_credentials import fetch_credentials
 from utils.read_from_blob import read_from_blob
+from utils.check_for_blob import check_for_blob
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     '''
@@ -30,6 +32,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             raise ValueError("Missing task_id in the request in CHECK_TASK_STATUS")
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+
+        section_ids = task_id_meta["section_tracker"]
+        for section_id in section_ids.keys(): # Determine if a _jsonl file exists
+            jsonl_id = section_id + "_jsonl"
+            isExists = check_for_blob(blob_connection_str_secret, "file-sections", jsonl_id)
+            if isExists:
+                task_id_meta["section_tracker"][section_id] = "completed"
 
         return func.HttpResponse(json.dumps(task_id_meta), mimetype="application/json") # Return task meta-data to frontend
 

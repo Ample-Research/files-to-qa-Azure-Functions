@@ -10,6 +10,7 @@ from utils.extract_answers import extract_answers
 from utils.extract_topic_tags import extract_topic_tags
 from utils.create_QA_JSONL_str import create_QA_JSONL_str
 from utils.retrieve_prompt_data import retrieve_prompt_data
+from utils.check_for_blob import check_for_blob
 
 
 def main(inputData: dict) -> dict:
@@ -34,9 +35,19 @@ def main(inputData: dict) -> dict:
         raise e
     
     try:
-        
+
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+        completed_section_id = section_id + "_jsonl"
+        alreadyExists = check_for_blob(blob_connection_str_secret, "file-sections", completed_section_id)
+        
+        if alreadyExists: # Make function idempotent in case it double-fires
+            return { 
+                "new_tags_list": [],
+                "section_id": section_id,
+                "num_QA_pairs": 0
+                }
+
         section_txt_bytes = read_from_blob(blob_connection_str_secret, "file-sections", section_id)
         section_txt = section_txt_bytes.decode('utf-8')
 
@@ -48,7 +59,6 @@ def main(inputData: dict) -> dict:
         section_tags = extract_topic_tags(section_txt, task_id_meta, tags_prompt_data, section_id)
 
         section_QA_JSONL_str = create_QA_JSONL_str(section_questions, section_answers, task_id_meta, section_id)
-        completed_section_id = section_id + "_jsonl"
         upload_to_blob(section_QA_JSONL_str, blob_connection_str_secret,"file-sections", completed_section_id)
 
         task_id_meta_updates = { # Updates to the metadata when the section completes

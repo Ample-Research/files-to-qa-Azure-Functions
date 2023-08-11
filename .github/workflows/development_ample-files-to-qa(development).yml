@@ -7,7 +7,7 @@ name: Build and deploy Python project to Azure Function App - ample-files-to-qa
 on:
   push:
     branches:
-      - main
+      - DEVELOPMENT
   workflow_dispatch:
 
 env:
@@ -18,12 +18,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Setup host.json for Production
-        run: cp host-prod.json host.json
+      - name: Setup host.json for Development
+        run: cp host-dev.json host.json
 
       - name: Setup Python version
         uses: actions/setup-python@v1
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     environment:
-      name: 'Production'
+      name: 'DEVELOPMENT'
       url: ${{ steps.deploy-to-function.outputs.webapp-url }}
 
     steps:
@@ -71,8 +71,8 @@ jobs:
         id: deploy-to-function
         with:
           app-name: 'ample-files-to-qa'
-          slot-name: 'Production'
+          slot-name: 'DEVELOPMENT'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5762040953B245C4A9D6C8C588B6781B }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FDA2E246559E48A1A194EB33BAB7DECE }}
           scm-do-build-during-deployment: true
           enable-oryx-build: true
