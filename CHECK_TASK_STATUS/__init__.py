@@ -1,7 +1,11 @@
 import logging
+import json
 
 import azure.functions as func
 
+from utils.create_error_msg import create_error_msg
+from utils.fetch_credentials import fetch_credentials
+from utils.read_from_blob import read_from_blob
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     '''
@@ -13,21 +17,21 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     Note, the front-end will handle how to actually deal with this JSON data.
     For example, when the task is complete, the front-end must know to stop sending requests based on the JSON.
     '''
-    logging.info('Python HTTP trigger function processed a request.')
+    logging.info('CHECK_TASK_STATUS function hit')
 
-    name = req.params.get('name')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+    try:
+        blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
+    except Exception as e:
+        return create_error_msg(e, note="Failed credentials in INITIATE_FILE_PROCESSING")
 
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
-    else:
-        return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
-        )
+    try:
+        task_id = req.params.get('task_id')
+        if not task_id:
+            raise ValueError("Missing task_id in the request in CHECK_TASK_STATUS")
+        task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
+        task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+
+        return func.HttpResponse(json.dumps(task_id_meta), mimetype="application/json") # Return task meta-data to frontend
+
+    except Exception as e:
+        return create_error_msg(e, note=f"Error retrieving task status in CHECK_TASK_STATUS for task {task_id}")

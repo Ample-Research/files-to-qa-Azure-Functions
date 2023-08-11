@@ -24,7 +24,7 @@ def query_openai_chat(prompt, model_name, section_id, estimated_tokens = 1000, r
 
     try:
         prompt_tokens = num_tokens_from_string(prompt)
-        if model_name == "gpt-3.5-turbo" and prompt_tokens > 3000:
+        if model_name == "gpt-3.5-turbo" and prompt_tokens + estimated_tokens > 4000:
             message = f"Inputted prompt was too long to be precessed in section {section_id}! Prompt Tokens: {prompt_tokens}"
             logging.error(message)
             raise ValueError(message) # This will not trigger a retry

@@ -29,12 +29,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return create_error_msg(e, note="Failed credentials in INITIATE_FILE_PROCESSING")
     
     try:
-
+        
         config_data = json.loads(req.form['data']) if 'data' in req.form else None
         file_data = req.files['file'].read() if 'file' in req.files else None
         filename = req.files['file'].filename
         file_size_in_bytes = len(file_data) if file_data else 0
-        
+
         if not file_data:
             raise ValueError("Missing file in the request in INITIATE_FILE_PROCESSING")
         if not config_data:

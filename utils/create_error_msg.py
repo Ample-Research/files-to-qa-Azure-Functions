@@ -7,7 +7,7 @@ def create_error_msg(e, status_code=500, note = ""):
   
     error_response = {
             "status": "error",
-            "message": f"Failed to process the request. Error: {str(e)}\n\n\nNote:{note}"
+            "message": f"Failed to process the request. Error: {str(e)} -- Note:{note}"
         }
   
-    return func.HttpResponse(json.dumps(error_response), status_code, mimetype="application/json")
+    return func.HttpResponse(json.dumps(error_response), status_code=status_code, mimetype="application/json")
