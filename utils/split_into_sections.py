@@ -9,18 +9,26 @@ except LookupError:
     logging.warning("Downloading Punkt! -- IF THIS IS NOT LOCAL, SOMETHING IS WRONG!")
     nltk.download('punkt')
 
-def split_into_sections(text, max_tokens=3000):
-    total_tokens = num_tokens_from_string(text)
-    num_sections = total_tokens // max_tokens
-    adjusted_max_tokens = total_tokens // (num_sections + 1) if total_tokens % max_tokens else total_tokens // num_sections
-    
-    sentences = sent_tokenize(text)
+def split_into_sections(text, max_tokens=2500, threshhold_ratio = 0.8):
     sections = []
     section_tokens = 0
     section_text = ""
+    sentences = sent_tokenize(text)
 
+    total_tokens = num_tokens_from_string(text)
+    num_sections = total_tokens // max_tokens
+    remaining_tokens = total_tokens % max_tokens
+    
+    while remaining_tokens > max_tokens * threshhold_ratio: # Even out section sizes
+        max_tokens -= 100
+        num_sections = total_tokens // max_tokens
+        remaining_tokens = total_tokens % max_tokens
+
+    num_sections = total_tokens // max_tokens
+    adjusted_max_tokens = total_tokens // (num_sections + 1) if total_tokens % max_tokens else total_tokens // num_sections
+  
     for sentence in sentences:
-        
+
         words = sentence.split()
         while len(words) > 40:
             part_sentence = " ".join(words[:40])

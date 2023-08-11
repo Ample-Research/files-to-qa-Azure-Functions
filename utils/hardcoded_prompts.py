@@ -51,9 +51,6 @@ Here are a few examples of Question-Answer pairs to help guide you:
 Ultimately, your answers will be used to train a Q&A language model thats end use is as follows: 
 {end_use} 
 
-Here are the questions you must answer: 
-{jsonl_questions}
-
 Here is the document:
 <!-- End Instructions --> 
 <!-- Begin Document --> 
@@ -61,6 +58,10 @@ Here is the document:
 <!-- End Document --> 
 <!-- Begin Final Call To Action -->
 Please provide well-informed, comprehensive, and engaging answers to the questions. Maintain the same JSONL format in your response.
+
+Here are the questions you must answer. Make sure to answer ALL of them: 
+{jsonl_questions}
+
 <!-- End Final Call To Action -->
 """
         prompt_data["inputs"] = "article_text, jsonl_questions, end_use, answer_tone, QA_examples"

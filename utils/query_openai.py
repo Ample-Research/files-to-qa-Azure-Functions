@@ -36,7 +36,7 @@ def query_openai_chat(prompt, model_name, section_id, estimated_tokens = 1000, r
             max_tokens=estimated_tokens
         )
         result = completion.choices[0].message['content']
-        logging.info(f"Completed OpenAI {req_name} Request  -- Section: {section_id} -- OpenAI ID: {completion['id']} -- OpenAI Info: {completion['usage']}")
+        logging.info(f"Completed OpenAI {req_name} Request (Finish Reason {completion.choices[0]['finish_reason']})  -- Section: {section_id} -- OpenAI ID: {completion['id']} -- OpenAI Info: {completion['usage']} -- Estimated Tokens: {estimated_tokens}")
         return result
     
     except ValueError as e:

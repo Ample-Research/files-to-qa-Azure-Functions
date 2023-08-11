@@ -16,7 +16,7 @@ def extract_questions(section_txt, task_id_meta, prompt_data, section_id):
         "QA_examples": task_id_meta["QA_examples"]
     }
     prompt = build_prompt(prompt_data, input_data)
-    output = query_openai_chat(prompt, task_id_meta["model_name"], section_id, estimated_tokens = 700, req_name = "Question Extraction")
+    output = query_openai_chat(prompt, task_id_meta["model_name"], section_id, estimated_tokens = 500, req_name = "Question Extraction")
 
     pattern = r'"question"\s*:\s*"([^"]*?)"|\'answer\'\s*:\s*\'([^\']*?)\'' # Match the question text format
     matches = re.findall(pattern, output, flags=re.DOTALL)
