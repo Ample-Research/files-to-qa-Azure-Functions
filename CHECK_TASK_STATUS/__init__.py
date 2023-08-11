@@ -7,6 +7,7 @@ from azure.storage.blob import BlobServiceClient
 from utils.create_error_msg import create_error_msg
 from utils.fetch_credentials import fetch_credentials
 from utils.read_from_blob import read_from_blob
+from utils.check_for_blob import check_for_blob
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     '''
@@ -32,13 +33,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
 
-        blob_connection_str = blob_connection_str_secret.value
-        blob_service_client = BlobServiceClient.from_connection_string(blob_connection_str)
         section_ids = task_id_meta["section_tracker"]
-        for section_id in section_ids.keys(): # Look at each section id and determine if a _jsonl file exists in blob
+        for section_id in section_ids.keys(): # Determine if a _jsonl file exists
             jsonl_id = section_id + "_jsonl"
-            blob_client = blob_service_client.get_blob_client(container="file-sections", blob=jsonl_id)
-            if blob_client.exists():
+            isExists = check_for_blob(blob_connection_str_secret, "file-sections", jsonl_id)
+            if isExists:
                 task_id_meta["section_tracker"][section_id] = "completed"
 
         return func.HttpResponse(json.dumps(task_id_meta), mimetype="application/json") # Return task meta-data to frontend

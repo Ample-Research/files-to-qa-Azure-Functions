@@ -57,12 +57,11 @@ async def main(msg: func.QueueMessage, starter: str) -> None:
         instance_id = await fire_orchestrator(starter, "SECTION_ORCHESTRATOR", task_id_meta)
         logging.info(f"Started orchestration with ID = '{instance_id}'")
         task_id_meta["orchestrator_id"] = instance_id
-        
+
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
 
     except Exception as e:
-        task_id_meta = json.loads(msg.get_body().decode('utf-8'))
-        task_id = task_id_meta["task_id"]
-        upload_task_error(task_id, "SPLIT_INTO_SECTIONS", e, blob_connection_str_secret)
         logging.error(f"Failed to split & save sections in SPLIT_INTO_SECTIONS: {str(e)}")
+        task_id_meta["error_message"] = str(e)
+        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
         raise e

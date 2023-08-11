@@ -65,6 +65,8 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
 
     except Exception as e:
         logging.error(f"Exeption raised in SECTION_ORCHESTRATOR for task {task_id}: {str(e)}")
+        task_id_meta["error_message"] = str(e)
+        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
         raise e
 
 main = df.Orchestrator.create(orchestrator_function)

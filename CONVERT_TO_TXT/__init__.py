@@ -44,8 +44,7 @@ def main(msg: func.QueueMessage) -> None:
         upload_to_queue(json.dumps(task_id_meta),queue_connection_str_secret, "split-sections-queue")
 
     except Exception as e:
-        task_id_meta = json.loads(msg.get_body().decode('utf-8'))
-        task_id = task_id_meta["task_id"]
-        upload_task_error(task_id, "SPLIT_INTO_SECTIONS", e, blob_connection_str_secret)
         logging.error(f"Failed to convert to txt in CONVERT_TO_TXT: {str(e)}")
+        task_id_meta["error_message"] = str(e)
+        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
         raise e
