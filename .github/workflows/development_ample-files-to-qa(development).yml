@@ -33,6 +33,10 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: Download NLTK Punkt Models
+        run: |
+          python -m nltk.downloader punkt
         
       # Optional: Add step to run tests here
 
