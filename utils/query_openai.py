@@ -15,7 +15,7 @@ def retry_callback(retry_state):
     logging.warning(f"Retrying due to: {exception} - Attempt {retry_state.attempt_number}")
 
 @retry(wait=wait_random_exponential(multiplier=1, min=2, max=30), retry_error_callback=retry_callback, retry=retry_if_exception_type(Exception), reraise=True)
-def query_openai_chat(prompt, model_name, section_id, estimated_tokens = 1000, req_name = "Unnamed"):
+def query_openai_chat(prompt, model_name, section_id, estimated_tokens = 1000, req_name = "Unnamed", num_choices = 1):
     '''
     Queries OpenAI.
     To Do: Add more parameters eventually.
@@ -33,9 +33,10 @@ def query_openai_chat(prompt, model_name, section_id, estimated_tokens = 1000, r
         completion = openai.ChatCompletion.create(
             model=model_name,
             messages=initial_message,
-            max_tokens=estimated_tokens
+            max_tokens=estimated_tokens,
+            n = num_choices
         )
-        result = completion.choices[0].message['content']
+        result = completion
         logging.info(f"Completed OpenAI {req_name} Request (Finish Reason {completion.choices[0]['finish_reason']})  -- Section: {section_id} -- OpenAI ID: {completion['id']} -- OpenAI Info: {completion['usage']} -- Estimated Tokens: {estimated_tokens}")
         return result
     

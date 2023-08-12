@@ -16,7 +16,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('DURABLE_FUNC_INTERACTIONS is firing!')
 
     try:
-        
+
         action = req.params.get('action')
         instance_id = req.params.get('instance_id') 
 
@@ -43,6 +43,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse("Invalid action", status_code=400)
     
         response = requests.request(method, url)
+
         if response.status_code != 200:
             logging.error(f"Error performing {action} action on instance {instance_id}: {response.text}")
             return func.HttpResponse(response.text, status_code=response.status_code)
