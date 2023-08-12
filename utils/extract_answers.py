@@ -24,7 +24,7 @@ def extract_answers(section_txt, task_id_meta, questions, prompt_data, section_i
         "QA_examples": task_id_meta["QA_examples"]
         }
 
-    retries = 4
+    retries = 1
     for _ in range(retries):
         prompt = build_prompt(prompt_data, inputs_data)
         output = query_openai_chat(prompt, "gpt-3.5-turbo-16k", section_id, estimated_tokens=5000, req_name="Answer Extraction")

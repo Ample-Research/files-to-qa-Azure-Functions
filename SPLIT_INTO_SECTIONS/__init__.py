@@ -7,14 +7,11 @@ import json
 
 import azure.functions as func
 
-from utils.extract_text_from_file import extract_text_from_file
 from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
-from utils.upload_to_queue import upload_to_queue
 from utils.read_from_blob import read_from_blob
 from utils.fire_orchestrator import fire_orchestrator
 from utils.split_into_sections import split_into_sections
-from utils.upload_task_error import upload_task_error
 
 
 async def main(msg: func.QueueMessage, starter: str) -> None:

@@ -1,4 +1,5 @@
 import base64
+import logging
 
 from azure.storage.queue import QueueClient
 

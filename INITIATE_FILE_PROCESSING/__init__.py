@@ -1,6 +1,7 @@
 import logging
 import json
 import uuid
+import os
 
 import azure.functions as func
 
@@ -46,7 +47,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         upload_to_blob(file_data, blob_connection_str_secret,"raw-file-uploads", file_id)
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
-        upload_to_queue(json.dumps(task_id_meta),queue_connection_str_secret, "convert-to-txt-queue")
+
+        queue_name = os.environ["TextConvertQueueStr"]
+        upload_to_queue(json.dumps(task_id_meta),queue_connection_str_secret, queue_name)
 
         return func.HttpResponse(json.dumps(task_id_meta), mimetype="application/json") # Return task data to frontend
     
