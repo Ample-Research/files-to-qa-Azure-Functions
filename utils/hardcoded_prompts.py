@@ -24,7 +24,8 @@ Please format your questions as JSONL like this:
 {"question":"QUESTION_B"}
 {"question":"QUESTION_C"}
 ...
-Feel free to provide as many pertinent questions as you can within the given format.
+Feel free to provide as many questions as you can within the given format. 
+Do not mention 'the document', but rather, try to make your questions about the information in the document.
 <!-- End Final Call To Action -->"""
         prompt_data["inputs"] = "article_text, custom_prompt_q"
 
@@ -45,7 +46,7 @@ Here is the document:
 {article_text} 
 <!-- End Document --> 
 <!-- Begin Final Call To Action -->
-Answer ALL of the following questions in the given format, adhering to the tone and guidelines provided above. Maintain the same JSONL format in your response:
+Answer ALL of the following questions in the given format, adhering to the tone and guidelines provided above. Do not reference 'the document', but rather, try to craft your answers using the information in the document. Maintain the same JSONL format in your response:
 
 {jsonl_questions}
 

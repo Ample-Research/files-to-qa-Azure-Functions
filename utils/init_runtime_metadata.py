@@ -18,7 +18,8 @@ def init_runtime_metadata(task_id):
         "section_answer_tokens": {},
         "section_answer_choice": {},
         "section_question_gpt_timer": {},
-        "section_answer_gpt_timer": {}
+        "section_answer_gpt_timer": {},
+        "raw_gpt_answer_output" : {}
     }
 
     return runtime_meta_data

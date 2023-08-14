@@ -59,7 +59,7 @@ def main(inputData: dict) -> dict:
 
         section_questions, q_execution_time = extract_questions(section_txt, task_id_meta, question_prompt_data, section_id)
         
-        section_answers, answer_choice, answer_tokens, a_execution_time = extract_answers(section_txt, task_id_meta, section_questions, answer_prompt_data, section_id, blob_connection_str_secret)
+        section_answers, answer_choice, answer_tokens, a_execution_time, raw_a_output = extract_answers(section_txt, task_id_meta, section_questions, answer_prompt_data, section_id, blob_connection_str_secret)
 
         section_tags = extract_topic_tags(section_txt, task_id_meta, tags_prompt_data, section_id)
 
@@ -75,7 +75,7 @@ def main(inputData: dict) -> dict:
         update_runtime_metadata(start_time, "PROCESS_SECTION", task_id, blob_connection_str_secret, 
                                 section_id = section_id, q_execution_time = q_execution_time,
                                 a_execution_time = a_execution_time, answer_choice = answer_choice,
-                                answer_tokens = answer_tokens)
+                                answer_tokens = answer_tokens, raw_a_output = raw_a_output)
 
         return task_id_meta_updates
 

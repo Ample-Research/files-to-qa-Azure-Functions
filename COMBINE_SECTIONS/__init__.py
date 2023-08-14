@@ -50,7 +50,7 @@ def main(inputData: dict) -> dict:
 
         logging.info(f'COMBINE_SECTIONS function for task {task_id} successfully completed!')
         
-        update_runtime_metadata(start_time, "CONVERT_TO_TXT", task_id, blob_connection_str_secret)
+        update_runtime_metadata(start_time, "COMBINE_SECTIONS", task_id, blob_connection_str_secret)
 
         return {"task_id": task_id}
 

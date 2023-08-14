@@ -66,5 +66,6 @@ def extract_answers(section_txt, task_id_meta, questions, prompt_data, section_i
         raise ValueError(f"No answers generated for section_id : {section_id}")
     
     a_execution_time = time.time() - start_time
+    raw_a_output = choice.message['content']
 
-    return answers, answer_choice, output.usage["completion_tokens"], a_execution_time
+    return answers, answer_choice, output.usage["completion_tokens"], a_execution_time, raw_a_output
