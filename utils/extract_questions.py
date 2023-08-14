@@ -12,8 +12,7 @@ def extract_questions(section_txt, task_id_meta, prompt_data, section_id):
     '''
     input_data = {
         "article_text": section_txt,
-        "custom_prompt_q": task_id_meta["custom_prompt_q"],
-        "QA_examples": task_id_meta["QA_examples"]
+        "custom_prompt_q": task_id_meta["custom_prompt_q"]
     }
     prompt = build_prompt(prompt_data, input_data)
     output = query_openai_chat(prompt, task_id_meta["model_name"], section_id, estimated_tokens = 500, req_name = "Question Extraction")
