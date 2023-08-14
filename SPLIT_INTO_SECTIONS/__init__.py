@@ -1,9 +1,6 @@
 import logging
-
-import azure.functions as func
-
-import logging
 import json
+import time
 
 import azure.functions as func
 
@@ -12,6 +9,7 @@ from utils.upload_to_blob import upload_to_blob
 from utils.read_from_blob import read_from_blob
 from utils.fire_orchestrator import fire_orchestrator
 from utils.split_into_sections import split_into_sections
+from utils.update_runtime_metadata import update_runtime_metadata
 
 
 async def main(msg: func.QueueMessage, starter: str) -> None:
@@ -26,6 +24,7 @@ async def main(msg: func.QueueMessage, starter: str) -> None:
         4. Updates Task_ID_Status (Task_ID) to mark section creation as complete & save section metadata (e.g. how many sections)
     '''
     logging.info('SPLIT_INTO_SECTIONS function triggered')
+    start_time = time.time()
 
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
@@ -56,6 +55,8 @@ async def main(msg: func.QueueMessage, starter: str) -> None:
         task_id_meta["orchestrator_id"] = instance_id
 
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
+
+        update_runtime_metadata(start_time, "SPLIT_INTO_SECTIONS", task_id, blob_connection_str_secret, section_tracker = section_tracker)
 
     except Exception as e:
         logging.error(f"Failed to split & save sections in SPLIT_INTO_SECTIONS: {str(e)}")

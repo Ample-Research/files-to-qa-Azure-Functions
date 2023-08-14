@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import time
 
 import azure.functions as func
 
@@ -9,6 +10,7 @@ from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
 from utils.upload_to_queue import upload_to_queue
 from utils.read_from_blob import read_from_blob
+from utils.update_runtime_metadata import update_runtime_metadata
 
 def main(msg: func.QueueMessage) -> None:
     '''
@@ -22,6 +24,7 @@ def main(msg: func.QueueMessage) -> None:
         4. Updates Task_ID_Status (Task_ID) to mark JSON processing as complete
     '''
     logging.info('CONVERT_TO_TXT function triggered')
+    start_time = time.time()
 
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
@@ -44,6 +47,8 @@ def main(msg: func.QueueMessage) -> None:
 
         queue_name = os.environ["SplitSectionsQueueStr"]
         upload_to_queue(json.dumps(task_id_meta),queue_connection_str_secret, queue_name)
+
+        update_runtime_metadata(start_time, "CONVERT_TO_TXT", task_id, blob_connection_str_secret)
 
     except Exception as e:
         logging.error(f"Failed to convert to txt in CONVERT_TO_TXT: {str(e)}")

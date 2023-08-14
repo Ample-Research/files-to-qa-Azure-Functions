@@ -2,10 +2,13 @@ import logging
 import json
 import uuid
 import os
+import time
+
 
 import azure.functions as func
 
 from utils.init_task_data import init_task_data
+from utils.update_runtime_metadata import update_runtime_metadata
 from utils.create_error_msg import create_error_msg
 from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
@@ -23,6 +26,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     The front-end can use this idea to track progress with the CHECK_TASK_STATUS function
     '''
     logging.info('INITIATE_FILE_PROCESSING function hit')
+    start_time = time.time()
 
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
@@ -50,6 +54,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         queue_name = os.environ["TextConvertQueueStr"]
         upload_to_queue(json.dumps(task_id_meta),queue_connection_str_secret, queue_name)
+
+        update_runtime_metadata(start_time, "INITIATE_FILE_PROCESSING", task_id, blob_connection_str_secret)
 
         return func.HttpResponse(json.dumps(task_id_meta), mimetype="application/json") # Return task data to frontend
     
