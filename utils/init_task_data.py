@@ -15,9 +15,8 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename):
         # Processing Config
         "user_id": config_data.get("user_id"),
         "title": config_data.get("title"),
-        "end_use": config_data["end_use"],
-        "answer_tone": config_data["answer_tone"],
-        "QA_examples": config_data["QA_examples"],
+        "custom_prompt_q": config_data["custom_prompt_q"], # For Questions
+        "custom_prompt_a": config_data["custom_prompt_a"], # For Answers
         "model_name": config_data["model_name"],
         "start_sequence": config_data["start_sequence"],
         "stop_sequence": config_data["stop_sequence"],

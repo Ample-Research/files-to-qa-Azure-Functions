@@ -12,7 +12,7 @@ def extract_questions(section_txt, task_id_meta, prompt_data, section_id):
     '''
     input_data = {
         "article_text": section_txt,
-        "end_use": task_id_meta["end_use"],
+        "custom_prompt_q": task_id_meta["custom_prompt_q"],
         "QA_examples": task_id_meta["QA_examples"]
     }
     prompt = build_prompt(prompt_data, input_data)

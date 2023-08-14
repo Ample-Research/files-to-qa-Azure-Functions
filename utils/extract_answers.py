@@ -19,9 +19,7 @@ def extract_answers(section_txt, task_id_meta, questions, prompt_data, section_i
     inputs_data = {
         'article_text': section_txt, 
         'jsonl_questions': jsonl_questions,
-        "end_use": task_id_meta["end_use"],
-        "answer_tone": task_id_meta["answer_tone"],
-        "QA_examples": task_id_meta["QA_examples"]
+        "custom_prompt_a": task_id_meta["custom_prompt_a"]
         }
 
     prompt = build_prompt(prompt_data, inputs_data)
