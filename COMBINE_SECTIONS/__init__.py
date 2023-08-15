@@ -33,6 +33,12 @@ def main(inputData: dict) -> dict:
         
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+
+        alreadyRun = task_id_meta["status"] == "completed"
+        if alreadyRun: # Make function idempotent in case it double-fires
+            logging.info(f'Task {task_id} has already been completed. Exiting COMBINE_SECTIONS.')
+            {"task_id": task_id}
+
         section_ids = task_id_meta["section_tracker"]
         completed_section_ids = [key + "_jsonl" for key, value in section_ids.items() if value == "completed"]
 

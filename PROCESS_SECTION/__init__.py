@@ -42,8 +42,8 @@ def main(inputData: dict) -> dict:
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
         completed_section_id = section_id + "_jsonl"
-        alreadyExists = check_for_blob(blob_connection_str_secret, "file-sections", completed_section_id)
         
+        alreadyExists = check_for_blob(blob_connection_str_secret, "file-sections", completed_section_id)    
         if alreadyExists: # Make function idempotent in case it double-fires
             return { 
                 "new_tags_list": [],

@@ -25,7 +25,7 @@ def extract_answers(section_txt, task_id_meta, questions, prompt_data, section_i
         }
 
     prompt = build_prompt(prompt_data, inputs_data)
-    output = query_openai_chat(prompt, "gpt-3.5-turbo-16k", section_id, estimated_tokens=6000, req_name="Answer Extraction", num_choices=3)
+    output = query_openai_chat(prompt, "qa-gpt-35-16k-context", section_id, estimated_tokens=6000, req_name="Answer Extraction", num_choices=3)
     answers = []
 
     for idx, choice in enumerate(output.choices):

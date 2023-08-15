@@ -42,22 +42,29 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         raise e
     
     try:
+        CONCURRENT_LIMIT = 10 # Maximum number of concurrent sections
 
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
         section_tracker = task_id_meta["section_tracker"]
 
-        parallel_tasks = [context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
-                         for section_id, status in section_tracker.items() if status != "completed"]
 
-        yield context.task_all(parallel_tasks)
+        CONCURRENT_LIMIT = 10 # Maximum number of concurrent sections
+        items_list = list(section_tracker.items())
+        tasks_batches = [items_list[i:i + CONCURRENT_LIMIT] for i in range(0, len(items_list), CONCURRENT_LIMIT)]
 
-        for completed_task in parallel_tasks:
-            result = completed_task.result
-            logging.info(f"Section Task Completed In Orchestrator - Section ID: {result['section_id']}")
-            task_id_meta["section_tracker"][result["section_id"]] = "completed"
-            task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
-            task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
+        for batch in tasks_batches:
+            parallel_tasks = [context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
+                            for section_id, status in batch if status != "completed"]
+
+            yield context.task_all(parallel_tasks)
+
+            for completed_task in parallel_tasks:
+                result = completed_task.result
+                logging.info(f"Section Task Completed In Orchestrator - Section ID: {result['section_id']}")
+                task_id_meta["section_tracker"][result["section_id"]] = "completed"
+                task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
+                task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
 
         task_id_meta["status"] = "sections_processed"
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
