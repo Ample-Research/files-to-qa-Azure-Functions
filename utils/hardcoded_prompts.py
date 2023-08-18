@@ -35,7 +35,7 @@ Do not mention 'the document', but rather, try to make your questions about the 
     elif prompt_name == "answer_extraction":
         
         prompt_data["prompt"] = """<!-- Begin Instructions --> 
-Your task is to analyze the provided document and answer the provided questions related to the content of the document. Each question should be considered, and you are to delve into the document to extract the information necessary to answer it. Your responses must align with the guidelines and tone given below.
+Your task is to analyze the provided document and answer the provided questions related to the content of the document. Each question should be considered, and you are to delve into the document to extract the information necessary to answer it. Your responses must align with the guidelines given below.
 
 Guidelines:
 {custom_prompt_a}
@@ -46,7 +46,7 @@ Here is the document:
 {article_text} 
 <!-- End Document --> 
 <!-- Begin Final Call To Action -->
-Answer ALL of the following questions in the given format, adhering to the tone and guidelines provided above. Do not reference 'the document', but rather, try to craft your answers using the information in the document. Maintain the same JSONL format in your response:
+Answer ALL of the following questions in the given format, adhering to the guidelines provided above. Do not reference 'the document', but rather, try to craft your answers using the information in the document. Maintain the same JSONL format in your response:
 
 {jsonl_questions}
 

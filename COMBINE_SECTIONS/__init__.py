@@ -6,7 +6,8 @@ from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
 from utils.read_from_blob import read_from_blob
 from utils.update_runtime_metadata import update_runtime_metadata
-
+from utils.generate_blob_download_link import generate_blob_download_link
+from utils.generate_valid_filename import generate_valid_filename
 from utils.validate_jsonl_format import validate_jsonl_format
 
 def main(inputData: dict) -> dict:
@@ -46,12 +47,15 @@ def main(inputData: dict) -> dict:
         for jsonl_section_id in completed_section_ids:
             section_content_bytes = read_from_blob(blob_connection_str_secret, "file-sections", jsonl_section_id)
             combined_jsonl += section_content_bytes.decode('utf-8') + "\n"
-        
         final_jsonl_str = validate_jsonl_format(combined_jsonl, task_id)
 
         final_file_id = task_id_meta["final_output_id"]
-        task_id_meta["status"] = "completed"
         upload_to_blob(final_jsonl_str, blob_connection_str_secret, "final-processed-results", final_file_id)
+
+        download_filename = generate_valid_filename(task_id_meta["title"]) + ".jsonl"
+        download_link = generate_blob_download_link(blob_connection_str_secret, "final-processed-results", final_file_id, download_filename)
+        task_id_meta["download_link"] = download_link
+        task_id_meta["status"] = "completed"
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
 
         logging.info(f'COMBINE_SECTIONS function for task {task_id} successfully completed!')
