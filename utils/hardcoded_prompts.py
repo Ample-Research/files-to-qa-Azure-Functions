@@ -6,21 +6,17 @@ def hardcoded_prompts(prompt_name):
 # -----------------------------------------------------------------------------------------------
     if prompt_name == "question_extraction":
         
-        prompt_data["prompt"] = """<!-- Begin Instructions --> 
-You are an advanced NLP model entrusted with transforming any type of document into a dynamic dataset to train a Q&A language model. Your task is to identify potential questions that the information in the document answers and formulate these questions in a manner a real user might ask them, given the specified end use of the Q&A model. 
+        prompt_data["prompt"] = """<!-- Begin Instructions -->
+Your task is to analyze the provided document and generate a list of pertinent questions that the information in the document answers. Your questions should be formulated based on the guidelines given below, be relevant to the document's conent, and mimic the variability of human language.
 
-The end use of the Q&A modeil is described as follows: 
-{end_use} 
-
-To guide you, here are a few examples that illustrate the expected Q&A output (note, for now you are only generating a list of questions): 
-{QA_examples} 
-
-Your challenge is to mimic the variability of human language, keeping the questions focused and relevant to the document's content, and in line with the user's preferred end use. Don't shy away from complex or multi-faceted queries. Now, analyze the following article and generate as many pertinent questions as possible: 
-
-Here is the document: 
-<!-- End Instructions --> 
-<!-- Begin Document --> 
-{article_text} 
+Guidelines:
+{custom_prompt_q}
+---
+Now, analyze the following document and generate as many pertinent questions as possible.
+Here is the document:
+<!-- End Instructions -->
+<!-- Begin Document -->
+{article_text}
 <!-- End Document -->
 <!-- Begin Final Call To Action -->
 Please format your questions as JSONL like this:
@@ -28,9 +24,10 @@ Please format your questions as JSONL like this:
 {"question":"QUESTION_B"}
 {"question":"QUESTION_C"}
 ...
-<!-- End Final Call To Action -->
-"""
-        prompt_data["inputs"] = "article_text, end_use, QA_examples"
+Feel free to provide as many questions as you can within the given format. 
+Do not mention 'the document', but rather, try to make your questions about the information in the document.
+<!-- End Final Call To Action -->"""
+        prompt_data["inputs"] = "article_text, custom_prompt_q"
 
 
 # ANSWER EXTRACTION PROMPT ----------------------------------------------------------------------
@@ -38,18 +35,10 @@ Please format your questions as JSONL like this:
     elif prompt_name == "answer_extraction":
         
         prompt_data["prompt"] = """<!-- Begin Instructions --> 
-As an advanced NLP model, you have the capacity to extract key information from complex text and communicate it as if you are an expert on the subject. This is your task now. Having been given a list of questions related to the document provided below, your next responsibility is to find the answers. You should consider each question asked and delve into the document to extract the information necessary to answer it. The document could be from any field. Your responses should align with the tone requested below. 
+Your task is to analyze the provided document and answer the provided questions related to the content of the document. Each question should be considered, and you are to delve into the document to extract the information necessary to answer it. Your responses must align with the guidelines and tone given below.
 
-The desired tone for your responses is: 
-{answer_tone} 
-
-While extracting information, keep in mind that your responses should not sound as if directly taken from the article. You are to respond as a knowledgeable expert in the field, according to the provided tone. 
-
-Here are a few examples of Question-Answer pairs to help guide you: 
-{QA_examples} 
-
-Ultimately, your answers will be used to train a Q&A language model thats end use is as follows: 
-{end_use} 
+Guidelines:
+{custom_prompt_a}
 
 Here is the document:
 <!-- End Instructions --> 
@@ -57,14 +46,13 @@ Here is the document:
 {article_text} 
 <!-- End Document --> 
 <!-- Begin Final Call To Action -->
-Please provide well-informed, comprehensive, and engaging answers to the questions. Maintain the same JSONL format in your response.
+Answer ALL of the following questions in the given format, adhering to the tone and guidelines provided above. Do not reference 'the document', but rather, try to craft your answers using the information in the document. Maintain the same JSONL format in your response:
 
-Here are the questions you must answer. Make sure to answer ALL of them: 
 {jsonl_questions}
 
 <!-- End Final Call To Action -->
 """
-        prompt_data["inputs"] = "article_text, jsonl_questions, end_use, answer_tone, QA_examples"
+        prompt_data["inputs"] = "article_text, jsonl_questions, custom_prompt_a"
 
 
 # TAGS EXTRACTION PROMPT ----------------------------------------------------------------------

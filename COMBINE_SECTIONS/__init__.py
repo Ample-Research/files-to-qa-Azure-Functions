@@ -1,9 +1,11 @@
 import logging
 import json
+import time
 
 from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
 from utils.read_from_blob import read_from_blob
+from utils.update_runtime_metadata import update_runtime_metadata
 
 from utils.validate_jsonl_format import validate_jsonl_format
 
@@ -18,6 +20,7 @@ def main(inputData: dict) -> dict:
         3. Updates Task_ID_Status (Task_ID) to mark processing as complete & gives it the Final File_ID
     '''
     logging.info(f'COMBINE_SECTIONS function triggered!')
+    start_time = time.time()
     task_id = inputData["task_id"]
 
     try:
@@ -30,6 +33,12 @@ def main(inputData: dict) -> dict:
         
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+
+        alreadyRun = task_id_meta["status"] == "completed"
+        if alreadyRun: # Make function idempotent in case it double-fires
+            logging.info(f'Task {task_id} has already been completed. Exiting COMBINE_SECTIONS.')
+            {"task_id": task_id}
+
         section_ids = task_id_meta["section_tracker"]
         completed_section_ids = [key + "_jsonl" for key, value in section_ids.items() if value == "completed"]
 
@@ -46,6 +55,8 @@ def main(inputData: dict) -> dict:
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
 
         logging.info(f'COMBINE_SECTIONS function for task {task_id} successfully completed!')
+        
+        update_runtime_metadata(start_time, "COMBINE_SECTIONS", task_id, blob_connection_str_secret)
 
         return {"task_id": task_id}
 
