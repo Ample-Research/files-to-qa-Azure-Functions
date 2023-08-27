@@ -13,13 +13,11 @@ import time
 import azure.functions as func
 import azure.durable_functions as df
 
-from utils.extract_text_from_file import extract_text_from_file
 from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
-from utils.upload_to_queue import upload_to_queue
 from utils.read_from_blob import read_from_blob
-from utils.upload_task_error import upload_task_error
 from utils.update_runtime_metadata import update_runtime_metadata
+from utils.update_task_id_meta import update_task_id_metadata
 
 def orchestrator_function(context: df.DurableOrchestrationContext):
     '''
@@ -48,7 +46,6 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
         section_tracker = task_id_meta["section_tracker"]
 
-
         CONCURRENT_LIMIT = 10 # Maximum number of concurrent sections
         items_list = list(section_tracker.items())
         tasks_batches = [items_list[i:i + CONCURRENT_LIMIT] for i in range(0, len(items_list), CONCURRENT_LIMIT)]
@@ -65,10 +62,15 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                 task_id_meta["section_tracker"][result["section_id"]] = "completed"
                 task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
                 task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
-
-        task_id_meta["status"] = "sections_processed"
-        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
         
+        updates = {
+            "section_tracker": task_id_meta["section_tracker"],
+            "tags": task_id_meta["tags"],
+            "num_QA_pairs": task_id_meta["num_QA_pairs"],
+            "status": "sections_processed"
+        }
+        update_task_id_metadata(task_id_meta, updates, blob_connection_str_secret) 
+
         combine_sections_task = yield context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
 
         update_runtime_metadata(start_time, "SECTION_ORCHESTRATOR", task_id, blob_connection_str_secret)

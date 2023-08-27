@@ -10,6 +10,7 @@ from utils.read_from_blob import read_from_blob
 from utils.fire_orchestrator import fire_orchestrator
 from utils.split_into_sections import split_into_sections
 from utils.update_runtime_metadata import update_runtime_metadata
+from utils.update_task_id_meta import update_task_id_metadata
 
 
 async def main(msg: func.QueueMessage, starter: str) -> None:
@@ -47,15 +48,15 @@ async def main(msg: func.QueueMessage, starter: str) -> None:
             upload_to_blob(section, blob_connection_str_secret,"file-sections", this_section_id)
             section_tracker[this_section_id] = "initiated"
 
-        task_id_meta["section_tracker"] = section_tracker # To track section IDs and status
-        task_id_meta["status"] = "sections_created"
-
         instance_id = await fire_orchestrator(starter, "SECTION_ORCHESTRATOR", task_id_meta)
         logging.info(f"Started orchestration with ID = '{instance_id}'")
-        task_id_meta["orchestrator_id"] = instance_id
 
-        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
-
+        updates = {
+            "section_tracker": section_tracker,
+            "status": "sections_created",
+            "orchestrator_id": instance_id
+        }
+        update_task_id_metadata(task_id_meta, updates, blob_connection_str_secret) 
         update_runtime_metadata(start_time, "SPLIT_INTO_SECTIONS", task_id, blob_connection_str_secret, section_tracker = section_tracker)
 
     except Exception as e:

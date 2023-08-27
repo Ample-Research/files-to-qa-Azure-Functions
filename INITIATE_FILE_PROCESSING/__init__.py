@@ -48,13 +48,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         task_id = str(uuid.uuid4())
         task_id_meta = init_task_data(task_id, config_data, file_size_in_bytes, filename)
         file_id = task_id_meta["raw_file_id"]
+        queue_name = os.environ["TextConvertQueueStr"]
 
         upload_to_blob(file_data, blob_connection_str_secret,"raw-file-uploads", file_id)
         upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret,"tasks-meta-data", task_id)
-
-        queue_name = os.environ["TextConvertQueueStr"]
         upload_to_queue(json.dumps(task_id_meta),queue_connection_str_secret, queue_name)
-
         update_runtime_metadata(start_time, "INITIATE_FILE_PROCESSING", task_id, blob_connection_str_secret)
 
         return func.HttpResponse(json.dumps(task_id_meta), mimetype="application/json") # Return task data to frontend

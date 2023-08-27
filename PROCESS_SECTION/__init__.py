@@ -56,17 +56,14 @@ def main(inputData: dict) -> dict:
 
         prompt_names = ["question_extraction", "answer_extraction", "topic_tags_extraction"]
         question_prompt_data, answer_prompt_data, tags_prompt_data = retrieve_prompt_data(prompt_names, blob_connection_str_secret)
-
         section_questions, q_execution_time = extract_questions(section_txt, task_id_meta, question_prompt_data, section_id)
-        
         section_answers, answer_choice, answer_tokens, a_execution_time, raw_a_output = extract_answers(section_txt, task_id_meta, section_questions, answer_prompt_data, section_id, blob_connection_str_secret)
-
         section_tags = extract_topic_tags(section_txt, task_id_meta, tags_prompt_data, section_id)
 
         section_QA_JSONL_str = create_QA_JSONL_str(section_questions, section_answers, task_id_meta, section_id)
         upload_to_blob(section_QA_JSONL_str, blob_connection_str_secret,"file-sections", completed_section_id)
 
-        task_id_meta_updates = { # Updates to the metadata when the section completes
+        task_id_meta_updates = { # Sends updates to Orchestrator to update
             "new_tags_list": section_tags,
             "section_id": section_id,
             "num_QA_pairs": len(section_questions)

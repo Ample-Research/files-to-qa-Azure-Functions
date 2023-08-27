@@ -8,7 +8,8 @@ from utils.read_from_blob import read_from_blob
 from utils.update_runtime_metadata import update_runtime_metadata
 from utils.generate_blob_download_link import generate_blob_download_link
 from utils.generate_valid_filename import generate_valid_filename
-from utils.validate_jsonl_format import validate_jsonl_format
+from utils.update_task_id_meta import update_task_id_metadata
+from utils.combine_JSONL import combine_JSONL
 
 def main(inputData: dict) -> dict:
     '''
@@ -40,28 +41,22 @@ def main(inputData: dict) -> dict:
             logging.info(f'Task {task_id} has already been completed. Exiting COMBINE_SECTIONS.')
             {"task_id": task_id}
 
-        section_ids = task_id_meta["section_tracker"]
-        completed_section_ids = [key + "_jsonl" for key, value in section_ids.items() if value == "completed"]
-
-        combined_jsonl = ""
-        for jsonl_section_id in completed_section_ids:
-            section_content_bytes = read_from_blob(blob_connection_str_secret, "file-sections", jsonl_section_id)
-            combined_jsonl += section_content_bytes.decode('utf-8') + "\n"
-        final_jsonl_str = validate_jsonl_format(combined_jsonl, task_id)
+        final_jsonl_str = combine_JSONL(task_id, task_id_meta["section_tracker"], blob_connection_str_secret)
 
         final_file_id = task_id_meta["final_output_id"]
         upload_to_blob(final_jsonl_str, blob_connection_str_secret, "final-processed-results", final_file_id)
 
         download_filename = generate_valid_filename(task_id_meta["title"]) + ".jsonl"
         download_link = generate_blob_download_link(blob_connection_str_secret, "final-processed-results", final_file_id, download_filename)
-        task_id_meta["download_link"] = download_link
-        task_id_meta["status"] = "completed"
-        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
-
-        logging.info(f'COMBINE_SECTIONS function for task {task_id} successfully completed!')
         
+        updates = {
+            "download_link": download_link,
+            "status": "completed"
+        }
+        update_task_id_metadata(task_id_meta, updates, blob_connection_str_secret)
         update_runtime_metadata(start_time, "COMBINE_SECTIONS", task_id, blob_connection_str_secret)
 
+        logging.info(f'COMBINE_SECTIONS function for task {task_id} successfully completed!')
         return {"task_id": task_id}
 
     except Exception as e:
