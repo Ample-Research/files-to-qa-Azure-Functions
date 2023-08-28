@@ -18,6 +18,7 @@ from utils.upload_to_blob import upload_to_blob
 from utils.read_from_blob import read_from_blob
 from utils.update_runtime_metadata import update_runtime_metadata
 from utils.update_task_id_meta import update_task_id_metadata
+from utils.retrieve_prompt_data import retrieve_prompt_data
 
 def orchestrator_function(context: df.DurableOrchestrationContext):
     '''
@@ -44,15 +45,29 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
 
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+        process_type = task_id_meta["process_type"]
         section_tracker = task_id_meta["section_tracker"]
 
         CONCURRENT_LIMIT = 10 # Maximum number of concurrent sections
         items_list = list(section_tracker.items())
         tasks_batches = [items_list[i:i + CONCURRENT_LIMIT] for i in range(0, len(items_list), CONCURRENT_LIMIT)]
 
+        if process_type == "QA": # Q&A Type, more types to be added
+            prompt_names = ["question_extraction", "answer_extraction", "topic_tags_extraction"]
+            prompt_data = retrieve_prompt_data(prompt_names, blob_connection_str_secret)
+        elif process_type == "CHAT":
+            logging.error("CHAT PROCESS TYPE NOT YET IMPLEMENTED!")
+            raise ValueError("CHAT PROCESS TYPE NOT YET IMPLEMENTED!")
+        else: # Default to QA
+            prompt_names = ["question_extraction", "answer_extraction", "topic_tags_extraction"]
+            prompt_data = retrieve_prompt_data(prompt_names, blob_connection_str_secret)
+
         for batch in tasks_batches:
-            parallel_tasks = [context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
-                            for section_id, status in batch if status != "completed"]
+            parallel_tasks = [context.call_activity("PROCESS_SECTION", {
+                "section_id": section_id, 
+                "task_id": task_id,
+                "prompt_data": prompt_data
+            }) for section_id, status in batch if status != "completed"]
 
             yield context.task_all(parallel_tasks)
 

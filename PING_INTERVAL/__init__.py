@@ -10,7 +10,7 @@ def main(mytimer: func.TimerRequest) -> None:
     if mytimer.past_due:
         logging.info('Running PING_INTERVAL...')
 
-    if os.getenv('StagingEnv') == "DEV":
+    if os.getenv('StagingEnv') != 'PROD':
         return
 
     try:
@@ -24,7 +24,7 @@ def main(mytimer: func.TimerRequest) -> None:
             task_id = response_data.get("task_id")
             logging.info(f'Successfully warmed up INITIATE_FILE_PROCESSING for task: {task_id}')
         else:
-            logging.error('Failed to warm up INITIATE_FILE_PROCESSING')
+            logging.error('Failed to warm up INITIATE_FILE_PROCESSING in PING_INTERVAL')
 
     except Exception as e:
         logging.error(f'Error in PING_INTERVAL: {e}')

@@ -15,11 +15,12 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename):
         # Processing Config
         "user_id": config_data.get("user_id"),
         "title": config_data.get("title"),
-        "custom_prompt_q": config_data["custom_prompt_q"], # For Questions
-        "custom_prompt_a": config_data["custom_prompt_a"], # For Answers
-        "model_name": config_data["model_name"],
-        "start_sequence": config_data["start_sequence"],
-        "stop_sequence": config_data["stop_sequence"],
+        "custom_prompt_q": config_data.get("custom_prompt_q"), # For Questions
+        "custom_prompt_a": config_data.get("custom_prompt_a"), # For Answers
+        "model_name": config_data.get("model_name", "qa-gpt-35-4k-context"),
+        "start_sequence": config_data.get("start_sequence", "\n\n###\n\n"),
+        "stop_sequence": config_data.get("stop_sequence", "###"),
+        "process_type": config_data.get("process_type", "QA"),
         # Status Tracking
         "tags": [],
         "status": "initiated",
