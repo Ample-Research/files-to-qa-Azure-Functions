@@ -6,7 +6,7 @@ from utils.upload_to_blob import upload_to_blob
 from utils.check_for_blob import check_for_blob
 
 
-def process_section_extract_QA(task_id, prompt_data, section_txt, task_id_meta, section_id, blob_connection_str_secret, start_time):
+def process_section_extract_QA(prompt_data, section_txt, task_id_meta, section_id, blob_connection_str_secret):
     '''
     This used to be the PROCESS_SECTION before we started adding more user cases.
     It is now triggered by PROCESS_SECTION iff the task_type is set to QA.
@@ -17,7 +17,7 @@ def process_section_extract_QA(task_id, prompt_data, section_txt, task_id_meta, 
         4. Updates Task_ID_Status (Task_ID) to mark this section processing as complete
     '''
     completed_section_id = section_id + "_jsonl"
-    alreadyExists = check_for_blob(blob_connection_str_secret, "file-sections", completed_section_id)
+    alreadyExists = check_for_blob(blob_connection_str_secret, "file-sections-output", completed_section_id)
     if alreadyExists:
         return { 
             "new_tags_list": [],
@@ -37,6 +37,6 @@ def process_section_extract_QA(task_id, prompt_data, section_txt, task_id_meta, 
         "num_QA_pairs": len(section_questions),
     }
 
-    upload_to_blob(section_QA_JSONL_str, blob_connection_str_secret,"file-sections", completed_section_id)
+    upload_to_blob(section_QA_JSONL_str, blob_connection_str_secret,"file-sections-output", completed_section_id)
 
     return task_id_meta_updates

@@ -2,10 +2,10 @@ import logging
 import json
 import time
 
-from utils.fetch_credentials import fetch_credentials
 from utils.read_from_blob import read_from_blob
 from utils.process_section_extract_QA import process_section_extract_QA
 from utils.init_function import init_function
+from utils.process_section_chat import process_section_chat
 
 def main(inputData: dict) -> dict:
     '''
@@ -20,7 +20,6 @@ def main(inputData: dict) -> dict:
         section_id = inputData["section_id"]
         task_id = inputData["task_id"]
         prompt_data = inputData["prompt_data"]
-
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
         task_type = task_id_meta["task_type"]
@@ -28,18 +27,11 @@ def main(inputData: dict) -> dict:
         section_txt = section_txt_bytes.decode('utf-8')
 
         if task_type == "QA":
-            task_id_meta_updates = process_section_extract_QA(
-                task_id, prompt_data, section_txt, task_id_meta, section_id, blob_connection_str_secret, start_time
-            )
+            task_id_meta_updates = process_section_extract_QA(prompt_data, section_txt, task_id_meta, section_id, blob_connection_str_secret)
         elif task_type == "CHAT":
-            # process_section_chat() # IMPLEMENT STAND-IN DUMMY FUNCTIONS
-
-            logging.error("CHAT PROCESS TYPE NOT YET IMPLEMENTED!")
-            raise ValueError("CHAT PROCESS TYPE NOT YET IMPLEMENTED!")
+            task_id_meta_updates = process_section_chat()
         else: # Default to "QA"
-            task_id_meta_updates = process_section_extract_QA(
-                task_id, prompt_data, section_txt, task_id_meta, section_id, blob_connection_str_secret, start_time
-            )
+            task_id_meta_updates = process_section_extract_QA(prompt_data, section_txt, task_id_meta, section_id, blob_connection_str_secret)
 
         logging.info(f"Section Task Completed In Orchestrator - Section ID: {section_id}")
 
