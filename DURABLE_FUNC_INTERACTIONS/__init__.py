@@ -5,6 +5,7 @@ import os
 import azure.functions as func
 
 from utils.create_error_msg import create_error_msg
+from utils.init_function import init_function
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -13,9 +14,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     It takes in the instance ID of the function and performs an action.
     For now, it will just check runtime status and/or terminate an orchestrator
     '''
-    logging.info('DURABLE_FUNC_INTERACTIONS is firing!')
-
     try:
+        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("DURABLE_FUNC_INTERACTIONS", "HTTP")
 
         action = req.params.get('action')
         instance_id = req.params.get('instance_id') 

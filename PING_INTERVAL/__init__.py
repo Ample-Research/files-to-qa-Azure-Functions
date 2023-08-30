@@ -5,10 +5,11 @@ import os
 import azure.functions as func
 
 from utils.build_ping_req import build_ping_req
+from utils.init_function import init_function
 
 def main(mytimer: func.TimerRequest) -> None:
     if mytimer.past_due:
-        logging.info('Running PING_INTERVAL...')
+        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("PING_INTERVAL", "TIMER")
 
     if os.getenv('StagingEnv') != 'PROD':
         return

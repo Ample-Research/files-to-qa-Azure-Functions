@@ -8,7 +8,8 @@ def build_ping_req():
             "custom_prompt_a":"THIS IS JUST A TEST. PLEASE GENERATE SHORT ANSWERS TO THE GIVEN QUESTIONS.",
             "model_name":"qa-gpt-35-4k-context",
             "start_sequence":"\n\n###\n\n",
-            "stop_sequence":"###"
+            "stop_sequence":"###",
+            "task_type": "QA"
         })
     payload = {'data': config_data}
 

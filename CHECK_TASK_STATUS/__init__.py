@@ -8,6 +8,7 @@ from utils.create_error_msg import create_error_msg
 from utils.fetch_credentials import fetch_credentials
 from utils.read_from_blob import read_from_blob
 from utils.check_for_blob import check_for_blob
+from utils.init_function import init_function
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     '''
@@ -19,14 +20,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     Note, the front-end will handle how to actually deal with this JSON data.
     For example, when the task is complete, the front-end must know to stop sending requests based on the JSON.
     '''
-    logging.info('CHECK_TASK_STATUS function hit')
 
     try:
-        blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
-    except Exception as e:
-        return create_error_msg(e, note="Failed credentials in INITIATE_FILE_PROCESSING")
+        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("CHECK_TASK_STATUS", "HTTP")
+        if error_msg:
+            return error_msg
 
-    try:
         task_id = req.params.get('task_id')
         if not task_id:
             raise ValueError("Missing task_id in the request in CHECK_TASK_STATUS")

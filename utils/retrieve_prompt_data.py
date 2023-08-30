@@ -5,7 +5,13 @@ import logging
 
 from utils.read_from_blob import read_from_blob
 
-def retrieve_prompt_data(prompt_list, blob_connection_str_secret):
+
+prompt_list_by_type = {
+    "QA": ["question_extraction", "answer_extraction", "topic_tags_extraction"],
+    "CHAT": []
+}
+
+def retrieve_prompt_data(task_type, blob_connection_str_secret):
     '''
     This function will take in a list of prompt names and retrieve 
     the corresponding prompt data from an Azure blob.
@@ -14,6 +20,11 @@ def retrieve_prompt_data(prompt_list, blob_connection_str_secret):
         containter_name = "prompt-schematics-dev"
     else:
         containter_name = "prompt-schematics-prod"
+
+    prompt_list = prompt_list_by_type[task_type]
+    if len(prompt_list) == 0:
+        logging.error(f"Invalid task_type: {task_type}")
+        raise ValueError(f"Invalid task_type: {task_type}")
 
     all_prompt_data = []
     for prompt_name in prompt_list:

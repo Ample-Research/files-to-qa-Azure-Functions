@@ -5,11 +5,11 @@ import time
 from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
 from utils.read_from_blob import read_from_blob
-from utils.update_runtime_metadata import update_runtime_metadata
 from utils.generate_blob_download_link import generate_blob_download_link
 from utils.generate_valid_filename import generate_valid_filename
 from utils.update_task_id_meta import update_task_id_metadata
 from utils.combine_JSONL import combine_JSONL
+from utils.init_function import init_function
 
 def main(inputData: dict) -> dict:
     '''
@@ -21,18 +21,10 @@ def main(inputData: dict) -> dict:
         2. Stores this final JSONL file inot a blob as the final result
         3. Updates Task_ID_Status (Task_ID) to mark processing as complete & gives it the Final File_ID
     '''
-    logging.info(f'COMBINE_SECTIONS function triggered!')
-    start_time = time.time()
-    task_id = inputData["task_id"]
-
     try:
-        blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
-    except Exception as e:
-        logging.error(f"Failed to connect credentials in COMBINE_SECTIONS for task {task_id}: {str(e)}")
-        raise e
+        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("COMBINE_SECTIONS", "ACTION")
 
-    try:
-        
+        task_id = inputData["task_id"]
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
 
@@ -52,7 +44,6 @@ def main(inputData: dict) -> dict:
             "status": "completed"
         }
         update_task_id_metadata(task_id_meta, updates, blob_connection_str_secret)
-        update_runtime_metadata(start_time, "COMBINE_SECTIONS", task_id, blob_connection_str_secret)
 
         logging.info(f'COMBINE_SECTIONS function for task {task_id} successfully completed!')
         return {"task_id": task_id}
