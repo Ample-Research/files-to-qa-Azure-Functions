@@ -15,22 +15,29 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename):
         # Processing Config
         "user_id": config_data.get("user_id"),
         "title": config_data.get("title"),
-        "custom_prompt_q": config_data["custom_prompt_q"], # For Questions
-        "custom_prompt_a": config_data["custom_prompt_a"], # For Answers
-        "model_name": config_data["model_name"],
-        "start_sequence": config_data["start_sequence"],
-        "stop_sequence": config_data["stop_sequence"],
+        "model_name": config_data.get("model_name", "qa-gpt-35-4k-context"),
+        "start_sequence": config_data.get("start_sequence", "\n\n###\n\n"),
+        "stop_sequence": config_data.get("stop_sequence", "###"),
+        "task_type": config_data.get("task_type", "QA"),
         # Status Tracking
         "tags": [],
         "status": "initiated",
         "section_tracker": {},
         "date_created": str(datetime.datetime.now()),
         "error_message": None,
-        "num_QA_pairs": 0,
-        "processing_time": 0,
         "file_size_in_bytes": file_size_in_bytes,
         "filename": filename,
-        "orchestrator_id": ""
+        "orchestrator_id": "",
+        "download_link": ""
     }
+
+    if task_id_meta_data["task_type"] == "QA":
+        task_id_meta_data["custom_prompt_q"] = config_data.get("custom_prompt_q") # For Questions
+        task_id_meta_data["custom_prompt_a"] = config_data.get("custom_prompt_a") # For Answers
+        task_id_meta_data["num_QA_pairs"] = 0
+    else: # Defaults to QA
+        task_id_meta_data["custom_prompt_q"] = config_data.get("custom_prompt_q")
+        task_id_meta_data["custom_prompt_a"] = config_data.get("custom_prompt_a")
+        task_id_meta_data["num_QA_pairs"] = 0
     
     return task_id_meta_data

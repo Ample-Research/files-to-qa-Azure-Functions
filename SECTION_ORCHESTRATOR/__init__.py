@@ -8,18 +8,16 @@
 
 import logging
 import json
-import time
 
-import azure.functions as func
 import azure.durable_functions as df
 
-from utils.extract_text_from_file import extract_text_from_file
-from utils.fetch_credentials import fetch_credentials
 from utils.upload_to_blob import upload_to_blob
-from utils.upload_to_queue import upload_to_queue
 from utils.read_from_blob import read_from_blob
-from utils.upload_task_error import upload_task_error
-from utils.update_runtime_metadata import update_runtime_metadata
+from utils.update_task_id_meta import update_task_id_metadata
+from utils.retrieve_prompt_data import retrieve_prompt_data
+from utils.init_function import init_function
+from utils.split_into_section_batches import split_into_section_batches
+from utils.process_section_batch import process_section_batch
 
 def orchestrator_function(context: df.DurableOrchestrationContext):
     '''
@@ -29,49 +27,33 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     More Research Required To Define These Specs... But generally:
         1. It triggers PROCESS_SECTION for every section
         2. It uses a Queue to trigger COMBINE_SECTIONS once all sections have been processed
-    '''
-    task_id_data_input = context.get_input()
-    task_id = task_id_data_input["task_id"]
-    logging.info(f'SECTION_ORCHESTRATOR function triggered for task: {task_id}')
-    start_time = time.time()
+    '''    
     
     try:
-        blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
-    except Exception as e:
-        logging.error(f"Failed to connect credentials in SECTION_ORCHESTRATOR: {str(e)}")
-        raise e
-    
-    try:
-        CONCURRENT_LIMIT = 10 # Maximum number of concurrent sections
+        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("SECTION_ORCHESTRATOR", "ORCHESTRATOR")
 
+        task_id_data_input = context.get_input()
+        task_id = task_id_data_input["task_id"]
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
         task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
-        section_tracker = task_id_meta["section_tracker"]
-
-
-        CONCURRENT_LIMIT = 10 # Maximum number of concurrent sections
-        items_list = list(section_tracker.items())
-        tasks_batches = [items_list[i:i + CONCURRENT_LIMIT] for i in range(0, len(items_list), CONCURRENT_LIMIT)]
-
-        for batch in tasks_batches:
-            parallel_tasks = [context.call_activity("PROCESS_SECTION", {"section_id": section_id, "task_id": task_id})
-                            for section_id, status in batch if status != "completed"]
-
-            yield context.task_all(parallel_tasks)
-
-            for completed_task in parallel_tasks:
-                result = completed_task.result
-                logging.info(f"Section Task Completed In Orchestrator - Section ID: {result['section_id']}")
-                task_id_meta["section_tracker"][result["section_id"]] = "completed"
-                task_id_meta["tags"] = list(set(task_id_meta["tags"] + result["new_tags_list"]))
-                task_id_meta["num_QA_pairs"] += result["num_QA_pairs"]
-
-        task_id_meta["status"] = "sections_processed"
-        upload_to_blob(json.dumps(task_id_meta), blob_connection_str_secret, "tasks-meta-data", task_id)
+        task_type = task_id_meta["task_type"]
         
-        combine_sections_task = yield context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
+        prompt_data = retrieve_prompt_data(task_type, blob_connection_str_secret) # Differs for each task_type
+        section_batches = split_into_section_batches(task_id_meta)
+        for batch in section_batches:
+            parallel_tasks = process_section_batch(batch, context, prompt_data, task_id)
+            batch_results = yield context.task_all(parallel_tasks)
+            if batch_results is not None: 
+                for completed_task in batch_results:
+                    updates = completed_task # PROCESS_SECTION will return updates
+                    update_task_id_metadata(task_id_meta, updates, blob_connection_str_secret)
 
-        update_runtime_metadata(start_time, "SECTION_ORCHESTRATOR", task_id, blob_connection_str_secret)
+        updates = {
+            "status": "sections_processed"
+        }
+        update_task_id_metadata(task_id_meta, updates, blob_connection_str_secret) 
+
+        combine_sections_task = yield context.call_activity("COMBINE_SECTIONS", {"task_id": task_id})
 
         return f"SECTION_ORCHESTRATOR Returned for {task_id}"
 

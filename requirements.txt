@@ -15,3 +15,5 @@ openai
 nltk
 tiktoken
 tenacity
+pytest
+pandas
