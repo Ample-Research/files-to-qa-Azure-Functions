@@ -2,14 +2,15 @@ import nltk
 import logging
 from utils.num_tokens_from_string import num_tokens_from_string
 from nltk.tokenize import sent_tokenize
+nltk.data.find('tokenizers/punkt')
 
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    logging.warning("Downloading Punkt! -- IF THIS IS NOT LOCAL, SOMETHING IS WRONG!")
-    nltk.download('punkt')
+# try:
+#     nltk.data.find('tokenizers/punkt')
+# except LookupError:
+#     logging.warning("Downloading Punkt! -- IF THIS IS NOT LOCAL, SOMETHING IS WRONG!")
+#     nltk.download('punkt')
 
-def split_into_sections(text, max_tokens=2500, threshhold_ratio = 0.8):
+def split_into_sections(text, max_tokens=1000, threshhold_ratio = 0.8):
     sections = []
     section_tokens = 0
     section_text = ""

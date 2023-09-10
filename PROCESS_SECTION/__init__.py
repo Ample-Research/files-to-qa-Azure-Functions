@@ -4,8 +4,8 @@ import time
 
 from utils.read_from_blob import read_from_blob
 from utils.process_section_extract_QA import process_section_extract_QA
-from utils.init_function import init_function
 from utils.process_section_chat import process_section_chat
+from utils.init_function import init_function
 
 def main(inputData: dict) -> dict:
     '''
