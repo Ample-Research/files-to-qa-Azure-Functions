@@ -29,6 +29,7 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename, table_con
         # Status Tracking
         "tags": [],
         "status": "initiated",
+        "num_sections": 0.,
         "section_tracker": {},
         "date_created": str(datetime.datetime.now()),
         "error_message": None,

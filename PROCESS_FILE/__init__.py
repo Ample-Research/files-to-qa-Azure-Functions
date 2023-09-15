@@ -31,7 +31,7 @@ def main(msg: func.QueueMessage) -> None:
         raw_file = read_from_blob(blob_connection_str_secret, "raw-file-uploads", file_id)
         txt_data = extract_text_from_file(raw_file, filename)
         sections = split_into_sections(txt_data)
-        trigger_success = trigger_sections(sections, task_id, blob_connection_str_secret, queue_connection_str_secret)
+        trigger_success = trigger_sections(sections, task_id, blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret)
 
         if trigger_success:
             update_task_id_meta(task_id, {"status": "section_processing_triggered"})

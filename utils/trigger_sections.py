@@ -1,12 +1,29 @@
-from utils.upload_to_blob import upload_to_blob
+import json
+import os
 
-def trigger_sections(sections, task_id, blob_connection_str_secret, queue_connection_str_secret):
-  
+from utils.upload_to_blob import upload_to_blob
+from utils.upload_to_table import upload_to_table
+from utils.upload_to_queue import upload_to_queue
+from utils.update_task_id_meta import update_task_id_meta
+
+def trigger_sections(sections, task_id, blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret):
+
+  update_task_id_meta(task_id, {"num_sections": len(sections)}, table_connection_str_secret)
+
   for idx, section in enumerate(sections):
     this_section_id = f"{task_id}_section_{str(idx)}"
     upload_to_blob(section, blob_connection_str_secret,"file-sections", this_section_id)
-    # Upload section status "initiated" to a section table
-    # Upload "this_section_id" to a new process_section queue
-    upload_to_table() # Not implemented
-  
+    section_meta = {
+      # Azure Table Vars
+      "PartitionKey": "sections",
+      "RowKey": this_section_id,
+      # Core Meta Data
+      "task_id": task_id,
+      "status": "initiated"
+    }
+
+    queue_msg = {"section_id": this_section_id, "task_id": task_id}
+    upload_to_table(section_meta, table_connection_str_secret, "sections")
+    upload_to_queue(queue_msg,queue_connection_str_secret, os.environ["PROCESS_SECTION_QUEUE"])
+    
   return True
