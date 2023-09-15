@@ -31,12 +31,18 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         file_data = req.files['file'].read() if 'file' in req.files else None
         filename = req.files['file'].filename
         file_size_in_bytes = len(file_data) if file_data else 0
+        task_type = config_data.get("task_type", "QA")
+
         task_id = init_task_data(config_data, file_size_in_bytes, filename, table_connection_str_secret)
         file_id = f"{task_id}_raw"
+
+
+
         queue_msg = {
             "file_id": file_id,
             "task_id": task_id,
-            "filename": filename
+            "filename": filename,
+            "task_type": task_type
         }
         upload_to_blob(file_data, blob_connection_str_secret,"raw-file-uploads", file_id)
         upload_to_queue(json.dumps(queue_msg),queue_connection_str_secret, os.environ["PROCESS_FILE_QUEUE"])

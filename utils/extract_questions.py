@@ -1,7 +1,4 @@
 import re
-import json
-import logging
-import time
 
 from utils.build_prompt import build_prompt
 from utils.query_openai import query_openai_chat
@@ -11,7 +8,6 @@ def extract_questions(section_txt, task_id_meta, prompt_data, section_id):
     This function will take in text and use the OpenAI API to create questions.
     The questions should be reverse engineered and include all beleivable questions answered by the article.
     '''
-    start_time = time.time()
 
     input_data = {
         "article_text": section_txt,
@@ -27,7 +23,5 @@ def extract_questions(section_txt, task_id_meta, prompt_data, section_id):
 
     if len(questions) == 0:
         raise ValueError(f"No questions generated for section_id : {section_id}")
-    
-    q_execution_time = time.time() - start_time
 
-    return questions, q_execution_time
+    return questions

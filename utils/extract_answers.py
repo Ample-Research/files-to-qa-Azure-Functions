@@ -35,7 +35,6 @@ def extract_answers(section_txt, task_id_meta, questions, prompt_data, section_i
 
     return answers, answer_choice, output.usage["completion_tokens"]
 
-
 @timeit
 def regex_ops(output, questions):
     answers = []
