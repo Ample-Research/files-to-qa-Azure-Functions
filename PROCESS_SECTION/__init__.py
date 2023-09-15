@@ -42,18 +42,21 @@ def main(msg: func.QueueMessage) -> None:
         
         if task_type == "QA":
             section_QA_JSONL_str, num_QA_pairs, section_tags, completed_section_id = process_section_extract_QA(prompt_data, section_txt, task_id_meta, section_id, blob_connection_str_secret)
-            upload_to_blob(section_QA_JSONL_str, blob_connection_str_secret,"file-sections-output", completed_section_id)
-            increment_numerical_field(task_id, "num_QA_pairs",  num_QA_pairs, table_connection_str_secret)
-            append_tag_field(task_id, section_tags, table_connection_str_secret)
+
+            if section_QA_JSONL_str and num_QA_pairs:
+                upload_to_blob(section_QA_JSONL_str, blob_connection_str_secret,"file-sections-output", completed_section_id)
+                increment_numerical_field(task_id, "num_QA_pairs",  num_QA_pairs, table_connection_str_secret)
+                append_tag_field(task_id, section_tags, table_connection_str_secret)
+                update_section_table(section_id, task_id, {"status": "complete"}, table_connection_str_secret)
+            else: # Failed
+                update_section_table(section_id, task_id, {"status": "failed"}, table_connection_str_secret)
 
         elif task_type == "CHAT":
             chat_info = process_section_chat() # NOT IMPLEMENTED
 
-        update_section_table(section_id, task_id, {"status": "complete"}, table_connection_str_secret)
-
         # Check if all sections for task are complete
         all_sections_complete = check_sections_status(task_id, total_num_sections, table_connection_str_secret)
-        if all_sections_complete:
+        if all_sections_complete: # Or failed
             queue_msg = {
                 "task_id": task_id,
                 "total_num_sections": total_num_sections,

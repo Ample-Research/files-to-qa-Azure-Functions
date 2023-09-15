@@ -12,7 +12,7 @@ except LookupError:
 from utils.timeit import timeit
 
 @timeit
-def split_into_sections(text, max_tokens=1000, threshhold_ratio = 0.8):
+def split_into_sections(text, max_tokens=750, threshhold_ratio = 0.8):
     sections = []
     section_tokens = 0
     section_text = ""

@@ -14,12 +14,18 @@ openai.api_version = "2023-03-15-preview"
 openai.api_key = os.getenv('OPEN_AI_KEY')
 
 
+
 def retry_callback(retry_state):
     ''' Callback function for logging retry attempts '''
     exception = retry_state.outcome.exception()
     logging.warning(f"Retrying due to: {exception} - Attempt {retry_state.attempt_number}")
 
-@retry(wait=wait_random_exponential(multiplier=1.1, min=20, max=200), retry_error_callback=retry_callback, retry=retry_if_exception_type(Exception), reraise=True)
+
+def is_rate_limit_error(exception):
+    return "exceeded token rate limit" in str(exception).lower()
+
+
+@retry(wait=wait_random_exponential(multiplier=1, min=50, max=200), retry_error_callback=retry_callback, retry=retry_if_exception_type(Exception), reraise=True)
 @timeit
 def query_openai_chat(prompt, model_name, section_id, estimated_tokens = 1000, req_name = "Unnamed", num_choices = 1):
     '''
@@ -52,4 +58,5 @@ def query_openai_chat(prompt, model_name, section_id, estimated_tokens = 1000, r
     except Exception as e:
         message = f"Error while Querying OpenAI {req_name} Request  -- Section: {section_id}: {str(e)}."
         logging.error(message)
-        raise Exception(message) # This will trigger a retry
+        raise Exception(message)
+    
