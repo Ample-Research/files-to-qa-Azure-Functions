@@ -15,7 +15,7 @@ def main(inputData: dict) -> dict:
     '''
     
     try:
-        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("PROCESS_SECTION", "ACTION")
+        blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret = init_function("PROCESS_SECTION", "ACTION")
 
         section_id = inputData["section_id"]
         task_id = inputData["task_id"]

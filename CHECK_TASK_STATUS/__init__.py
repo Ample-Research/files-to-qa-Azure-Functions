@@ -22,7 +22,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     '''
 
     try:
-        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("CHECK_TASK_STATUS", "HTTP")
+        blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret = init_function("CHECK_TASK_STATUS", "HTTP")
         if error_msg:
             return error_msg
 

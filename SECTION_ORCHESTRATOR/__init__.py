@@ -30,7 +30,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     '''    
     
     try:
-        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("SECTION_ORCHESTRATOR", "ORCHESTRATOR")
+        blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret = init_function("SECTION_ORCHESTRATOR", "ORCHESTRATOR")
 
         task_id_data_input = context.get_input()
         task_id = task_id_data_input["task_id"]

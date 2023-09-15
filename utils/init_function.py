@@ -6,8 +6,6 @@ from utils.create_error_msg import create_error_msg
 
 def init_function(func_name, func_type):
     logging.info(f'{func_name} function initiated')
-    start_time = time.time()
-    error_msg = False
     try:
         blob_connection_str_secret, queue_connection_str_secret = fetch_credentials()
     except Exception as e:
@@ -16,4 +14,4 @@ def init_function(func_name, func_type):
         else:
             logging.error(f"Failed to connect credentials in {func_name}: {str(e)}")
             raise e
-    return start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg
+    return blob_connection_str_secret, queue_connection_str_secret

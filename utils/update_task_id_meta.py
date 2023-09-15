@@ -1,18 +1,10 @@
-import json
-from utils.upload_to_blob import upload_to_blob
+from azure.data.tables import TableClient
 
-def update_task_id_metadata(current_metadata, updates, blob_connection_str_secret):
-    
-    for key, value in updates.items():
-      
-      if key == "single_section":
-        current_metadata["section_tracker"][value["section_id"]] = value["status"]
-      elif key == "tags":
-         current_metadata["tags"] = list(set(current_metadata["tags"] + value))
-      elif key == "num_QA_pairs":
-         current_metadata["num_QA_pairs"] += value
-      else:
-        current_metadata[key] = value
+def update_task_id_meta(task_id, updated_data, table_connection_str_secret):
+    table_client = TableClient.from_connection_string(table_connection_str_secret.value, table_name="tasks")
+    task_data = table_client.get_entity(partition_key="tasks", row_key=task_id)
+    for key, value in updated_data.items():
+        task_data[key] = value
+    table_client.update_entity(mode="Merge", entity=task_data)
 
-    upload_to_blob(json.dumps(current_metadata), blob_connection_str_secret, "tasks-meta-data", current_metadata["task_id"])
-    return current_metadata
+

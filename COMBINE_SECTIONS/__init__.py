@@ -20,7 +20,7 @@ def main(inputData: dict) -> dict:
         3. Updates Task_ID_Status (Task_ID) to mark processing as complete & gives it the Final File_ID
     '''
     try:
-        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("COMBINE_SECTIONS", "ACTION")
+        blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret = init_function("COMBINE_SECTIONS", "ACTION")
 
         task_id = inputData["task_id"]
         task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)

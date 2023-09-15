@@ -27,7 +27,7 @@ def process_section_extract_QA(prompt_data, section_txt, task_id_meta, section_i
     
     question_prompt_data, answer_prompt_data, tags_prompt_data = prompt_data
     section_questions, q_execution_time = extract_questions(section_txt, task_id_meta, question_prompt_data, section_id)
-    section_answers, answer_choice, answer_tokens, a_execution_time, raw_a_output = extract_answers(section_txt, task_id_meta, section_questions, answer_prompt_data, section_id, blob_connection_str_secret)
+    section_answers, answer_choice, answer_tokens = extract_answers(section_txt, task_id_meta, section_questions, answer_prompt_data, section_id, blob_connection_str_secret)
     section_tags = extract_topic_tags(section_txt, task_id_meta, tags_prompt_data, section_id)
     section_QA_JSONL_str = create_QA_JSONL_str(section_questions, section_answers, task_id_meta, section_id)
 
