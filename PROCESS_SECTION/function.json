@@ -6,7 +6,8 @@
       "type": "queueTrigger",
       "direction": "in",
       "queueName": "%PROCESS_SECTION_QUEUE%",
-      "connection": "AzureWebJobsStorage"
+      "connection": "AzureWebJobsStorage",
+      "maxBatchSize": 1
     }
   ]
 }

@@ -36,14 +36,14 @@ def main(msg: func.QueueMessage) -> None:
 
         section_txt_bytes = read_from_blob(blob_connection_str_secret, "file-sections", section_id)
         section_txt = section_txt_bytes.decode('utf-8')
-        task_id_meta = read_from_table(task_id, "tasks", table_connection_str_secret)
+        task_id_meta = read_from_table(task_id, "tasks", "tasks", table_connection_str_secret)
         total_num_sections = task_id_meta["num_sections"]
         title = task_id_meta["title"]
         
         if task_type == "QA":
             section_QA_JSONL_str, num_QA_pairs, section_tags, completed_section_id = process_section_extract_QA(prompt_data, section_txt, task_id_meta, section_id, blob_connection_str_secret)
             upload_to_blob(section_QA_JSONL_str, blob_connection_str_secret,"file-sections-output", completed_section_id)
-            increment_numerical_field(task_id, "num_QA_pairs",  num_QA_pairs)
+            increment_numerical_field(task_id, "num_QA_pairs",  num_QA_pairs, table_connection_str_secret)
             append_tag_field(task_id, section_tags, table_connection_str_secret)
 
         elif task_type == "CHAT":
@@ -65,17 +65,17 @@ def main(msg: func.QueueMessage) -> None:
 
     except Exception as e:
         logging.error(f"Failed to process section in PROCESS_SECTION for section {section_id}: {str(e)}... retrying")
-
-        section_meta = read_from_table(section_id, "sections", table_connection_str_secret)
-
-        if section_meta["status"] == "initiated": # Retry once (needs to be broken out)
-            update_section_table(section_id, task_id, {"status": "retrying"}, table_connection_str_secret)
-            queue_msg = {
-            "section_id": section_id, 
-            "task_id": task_id, 
-            "prompt_data": prompt_data, 
-            "task_type": task_type
-            }
-            upload_to_queue(json.dumps(queue_msg), queue_connection_str_secret, os.environ["PROCESS_SECTION_QUEUE"])
-        else:
-            raise e
+        raise e
+    
+        # # RETRY IF FAILED —— TBD
+        # section_meta = read_from_table(section_id, task_id, "sections", table_connection_str_secret)
+        # if section_meta["status"] == "initiated":
+        #     update_section_table(section_id, task_id, {"status": "retrying"}, table_connection_str_secret)
+            
+        #     queue_msg = {
+        #     "section_id": section_id, 
+        #     "task_id": task_id, 
+        #     "prompt_data": prompt_data, 
+        #     "task_type": task_type
+        #     }
+        #     upload_to_queue(json.dumps(queue_msg), queue_connection_str_secret, os.environ["PROCESS_SECTION_QUEUE"])

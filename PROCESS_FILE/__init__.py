@@ -35,7 +35,7 @@ def main(msg: func.QueueMessage) -> None:
         trigger_success = trigger_sections(sections, task_id, task_type, prompt_data, blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret)
 
         if trigger_success:
-            update_task_id_meta(task_id, {"status": "section_processing_triggered"})
+            update_task_id_meta(task_id, {"status": "section_processing_triggered"}, table_connection_str_secret)
 
     except Exception as e:
         logging.error(f"Failed PROCESS_FILE: {str(e)}")
