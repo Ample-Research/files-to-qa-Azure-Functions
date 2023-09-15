@@ -1,7 +1,9 @@
 import json
 import re
 import logging
+from utils.timeit import timeit
 
+@timeit
 def validate_jsonl_format(input_string, task_id):
     cleaned_jsonl_lines = []
     lines = input_string.strip().split('\n')

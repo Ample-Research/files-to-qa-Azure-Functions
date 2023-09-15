@@ -15,10 +15,8 @@ from utils.read_from_table import read_from_table
 from utils.check_sections_status import check_sections_status
 from utils.upload_to_queue import upload_to_queue
 from utils.update_task_id_meta import update_task_id_meta
-from utils.timeit import timeit
 
 
-@timeit
 def main(msg: func.QueueMessage) -> None:
     '''
     1. Takes in section id
@@ -62,7 +60,7 @@ def main(msg: func.QueueMessage) -> None:
                 "task_type": task_type,
                 "title": title
             }
-            upload_to_queue(queue_msg, queue_connection_str_secret, os.environ["COMBINE_SECTIONS_QUEUE"])
+            upload_to_queue(json.dumps(queue_msg), queue_connection_str_secret, os.environ["COMBINE_SECTIONS_QUEUE"])
             update_task_id_meta(task_id, {"status": "sections_processed"}, table_connection_str_secret)
 
     except Exception as e:
@@ -78,6 +76,6 @@ def main(msg: func.QueueMessage) -> None:
             "prompt_data": prompt_data, 
             "task_type": task_type
             }
-            upload_to_queue(queue_msg, queue_connection_str_secret, os.environ["PROCESS_SECTION_QUEUE"])
+            upload_to_queue(json.dumps(queue_msg), queue_connection_str_secret, os.environ["PROCESS_SECTION_QUEUE"])
         else:
             raise e

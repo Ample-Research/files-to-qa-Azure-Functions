@@ -5,10 +5,9 @@ import azure.functions as func
 from azure.storage.blob import BlobServiceClient
 
 from utils.create_error_msg import create_error_msg
-from utils.fetch_credentials import fetch_credentials
-from utils.read_from_blob import read_from_blob
-from utils.check_for_blob import check_for_blob
+from utils.read_from_table import read_from_table
 from utils.init_function import init_function
+from utils.check_sections_status import track_sections_completion
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     '''
@@ -23,23 +22,18 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret = init_function("CHECK_TASK_STATUS", "HTTP")
-        if error_msg:
-            return error_msg
 
         task_id = req.params.get('task_id')
         if not task_id:
             raise ValueError("Missing task_id in the request in CHECK_TASK_STATUS")
-        task_id_meta_bytes = read_from_blob(blob_connection_str_secret, "tasks-meta-data", task_id)
-        task_id_meta = json.loads(task_id_meta_bytes.decode('utf-8'))
+        task_id_meta = read_from_table(task_id, "tasks", table_connection_str_secret)
 
-        # # Commented out becasue it is drastically slowing down the performance. Not work it.
-        # section_ids = task_id_meta["section_tracker"]
-        # for section_id in section_ids.keys(): # Determine if a _jsonl file exists
-        #         jsonl_id = section_id + "_jsonl"
-        #         isExists = check_for_blob(blob_connection_str_secret, "file-sections-output", jsonl_id)
-        #         if isExists:
-        #             task_id_meta["section_tracker"][section_id] = "completed"
+        section_completion_percentage = 0
+        if task_id_meta["status"] == "section_processing_triggered":
+            section_completion_percentage = track_sections_completion(task_id, task_id_meta["num_sections"], table_connection_str_secret)
 
+        task_id_meta["completion_percentage"] = section_completion_percentage
+        
         return func.HttpResponse(json.dumps(task_id_meta), mimetype="application/json") # Return task meta-data to frontend
 
     except Exception as e:

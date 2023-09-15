@@ -1,6 +1,8 @@
 from utils.read_from_blob import read_from_blob
 from utils.validate_jsonl_format import validate_jsonl_format
+from utils.timeit import timeit
 
+@timeit
 def combine_JSONL(task_id, section_ids, blob_connection_str_secret):
     combined_jsonl = ""
     for jsonl_section_id in section_ids:

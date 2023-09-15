@@ -3,8 +3,9 @@ from utils.extract_answers import extract_answers
 from utils.extract_topic_tags import extract_topic_tags
 from utils.create_QA_JSONL_str import create_QA_JSONL_str
 from utils.upload_to_blob import upload_to_blob
+from utils.timeit import timeit
 
-
+@timeit
 def process_section_extract_QA(prompt_data, section_txt, task_id_meta, section_id, blob_connection_str_secret):
     '''
     This used to be the PROCESS_SECTION before we started adding more user cases.

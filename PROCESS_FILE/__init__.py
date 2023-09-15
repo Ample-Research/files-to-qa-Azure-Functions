@@ -6,13 +6,11 @@ import azure.functions as func
 from utils.extract_text_from_file import extract_text_from_file
 from utils.read_from_blob import read_from_blob
 from utils.init_function import init_function
-from utils.timeit import timeit
 from utils.split_into_sections import split_into_sections
 from utils.trigger_sections import trigger_sections
 from utils.update_task_id_meta import update_task_id_meta
 from utils.retrieve_prompt_data import retrieve_prompt_data
 
-@timeit
 def main(msg: func.QueueMessage) -> None:
     '''
     1. Takes in file id

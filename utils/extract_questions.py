@@ -2,7 +2,9 @@ import re
 
 from utils.build_prompt import build_prompt
 from utils.query_openai import query_openai_chat
+from utils.timeit import timeit
 
+@timeit
 def extract_questions(section_txt, task_id_meta, prompt_data, section_id):
     '''
     This function will take in text and use the OpenAI API to create questions.

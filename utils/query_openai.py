@@ -5,6 +5,7 @@ import time
 from tenacity import retry, wait_random_exponential, retry_if_exception_type
 
 from utils.num_tokens_from_string import num_tokens_from_string
+from utils.timeit import timeit
 
 
 openai.api_type = "azure"
@@ -19,6 +20,7 @@ def retry_callback(retry_state):
     logging.warning(f"Retrying due to: {exception} - Attempt {retry_state.attempt_number}")
 
 @retry(wait=wait_random_exponential(multiplier=1, min=2, max=20), retry_error_callback=retry_callback, retry=retry_if_exception_type(Exception), reraise=True)
+@timeit
 def query_openai_chat(prompt, model_name, section_id, estimated_tokens = 1000, req_name = "Unnamed", num_choices = 1):
     '''
     Queries OpenAI.

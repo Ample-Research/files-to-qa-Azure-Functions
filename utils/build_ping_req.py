@@ -1,5 +1,7 @@
 import json
+from utils.timeit import timeit
 
+@timeit
 def build_ping_req():
     config_data = json.dumps({
             "user_id": "PING",

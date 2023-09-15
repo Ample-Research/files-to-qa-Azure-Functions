@@ -2,7 +2,9 @@ from utils.upload_to_blob import upload_to_blob
 from utils.combine_JSONL import combine_JSONL
 from utils.generate_blob_download_link import generate_blob_download_link
 from utils.generate_valid_filename import generate_valid_filename
+from utils.timeit import timeit
 
+@timeit
 def combine_qa(task_id, num_sections, title, blob_connection_str_secret, table_connection_str_secret):
     section_ids = []
     for idx in range(num_sections):

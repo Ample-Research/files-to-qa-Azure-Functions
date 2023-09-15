@@ -1,6 +1,8 @@
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions, ContentSettings
 from datetime import datetime, timedelta
+from utils.timeit import timeit
 
+@timeit
 def generate_blob_download_link(blob_connection_str_secret, container_name, blob_id, download_filename):
     blob_connection_str = blob_connection_str_secret.value
     blob_service_client = BlobServiceClient.from_connection_string(blob_connection_str)

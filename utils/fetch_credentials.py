@@ -3,7 +3,9 @@ from azure.keyvault.secrets import SecretClient
 from azure.identity import DefaultAzureCredential
 from azure.data.tables import TableClient
 vault_url = os.environ["VAULT_URL"]
+from utils.timeit import timeit
 
+@timeit
 def fetch_credentials():
       # Fetch secrets and credentials
     credential = DefaultAzureCredential()

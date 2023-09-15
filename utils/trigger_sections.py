@@ -5,7 +5,9 @@ from utils.upload_to_blob import upload_to_blob
 from utils.upload_to_table import upload_to_table
 from utils.upload_to_queue import upload_to_queue
 from utils.update_task_id_meta import update_task_id_meta
+from utils.timeit import timeit
 
+@timeit
 def trigger_sections(sections, task_id, task_type, prompt_data, blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret):
 
   update_task_id_meta(task_id, {"num_sections": len(sections)}, table_connection_str_secret)
@@ -29,6 +31,6 @@ def trigger_sections(sections, task_id, task_type, prompt_data, blob_connection_
       "task_type": task_type
     }
     upload_to_table(section_meta, table_connection_str_secret, "sections")
-    upload_to_queue(queue_msg,queue_connection_str_secret, os.environ["PROCESS_SECTION_QUEUE"])
+    upload_to_queue(json.dumps(queue_msg),queue_connection_str_secret, os.environ["PROCESS_SECTION_QUEUE"])
     
   return True

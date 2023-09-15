@@ -33,10 +33,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         file_size_in_bytes = len(file_data) if file_data else 0
         task_type = config_data.get("task_type", "QA")
 
+        if not file_data:
+            raise ValueError("Missing file in the request in INITIATE_FILE_PROCESSING")
+        if not config_data:
+            raise ValueError("Missing config data in the request in INITIATE_FILE_PROCESSING")
+
         task_id = init_task_data(config_data, file_size_in_bytes, filename, table_connection_str_secret)
         file_id = f"{task_id}_raw"
 
-
+        upload_to_blob(file_data, blob_connection_str_secret,"raw-file-uploads", file_id)
 
         queue_msg = {
             "file_id": file_id,
@@ -44,8 +49,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "filename": filename,
             "task_type": task_type
         }
-        upload_to_blob(file_data, blob_connection_str_secret,"raw-file-uploads", file_id)
+
         upload_to_queue(json.dumps(queue_msg),queue_connection_str_secret, os.environ["PROCESS_FILE_QUEUE"])
+
         return func.HttpResponse(json.dumps({"task_id": task_id}), mimetype="application/json")
     
     except Exception as e:

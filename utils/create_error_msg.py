@@ -1,7 +1,9 @@
 import logging
 import json
 import azure.functions as func
+from utils.timeit import timeit
 
+@timeit
 def create_error_msg(e, status_code=500, note = ""):
     logging.error(f"Error--{note}: {str(e)}")
   

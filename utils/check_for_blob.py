@@ -1,5 +1,7 @@
 from azure.storage.blob import BlobServiceClient
+from utils.timeit import timeit
 
+@timeit
 def check_for_blob(blob_connection_str_secret, container_name, file_id):
     blob_connection_str = blob_connection_str_secret.value
     blob_service_client = BlobServiceClient.from_connection_string(blob_connection_str)

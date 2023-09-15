@@ -1,9 +1,12 @@
 import datetime
 import uuid
+import json
 
-from upload_to_table import upload_to_table
+from utils.upload_to_table import upload_to_table
+from utils.timeit import timeit
 
-def init_task_data(task_id, config_data, file_size_in_bytes, filename, table_connection_str_secret):
+@timeit
+def init_task_data(config_data, file_size_in_bytes, filename, table_connection_str_secret):
     '''
     The goal of this function is to initialize the metadata for a new task (e.g. file-upload).
     It will take in the task_id and create a JSON dictionary that will track the task across its lifecycle.
@@ -27,10 +30,9 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename, table_con
         "stop_sequence": config_data.get("stop_sequence", "###"),
         "task_type": config_data.get("task_type", "QA"),
         # Status Tracking
-        "tags": [],
+        "tags": json.dumps([]),
         "status": "initiated",
         "num_sections": 0.,
-        "section_tracker": {},
         "date_created": str(datetime.datetime.now()),
         "error_message": None,
         "file_size_in_bytes": file_size_in_bytes,
@@ -52,4 +54,4 @@ def init_task_data(task_id, config_data, file_size_in_bytes, filename, table_con
     
     upload_to_table(task_id_meta_data, table_connection_str_secret, "tasks")
 
-    return task_id_meta_data
+    return task_id
