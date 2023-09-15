@@ -9,7 +9,7 @@ from utils.init_function import init_function
 
 def main(mytimer: func.TimerRequest) -> None:
     if mytimer.past_due:
-        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("PING_INTERVAL", "TIMER")
+        blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret = init_function("PING_INTERVAL", "TIMER")
 
     if os.getenv('StagingEnv') != 'PROD':
         return

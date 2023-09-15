@@ -4,6 +4,7 @@ import io
 import logging
 
 from utils.read_from_blob import read_from_blob
+from utils.timeit import timeit
 
 
 prompt_list_by_type = {
@@ -11,6 +12,7 @@ prompt_list_by_type = {
     "CHAT": []
 }
 
+@timeit
 def retrieve_prompt_data(task_type, blob_connection_str_secret):
     '''
     This function will take in a list of prompt names and retrieve 

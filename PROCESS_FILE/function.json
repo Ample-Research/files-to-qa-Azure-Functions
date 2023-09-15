@@ -5,13 +5,8 @@
       "name": "msg",
       "type": "queueTrigger",
       "direction": "in",
-      "queueName": "%SplitSectionsQueueStr%",
+      "queueName": "%PROCESS_FILE_QUEUE%",
       "connection": "AzureWebJobsStorage"
-    },
-    {
-      "name": "starter",
-      "type": "orchestrationClient",
-      "direction": "in"
     }
   ]
 }

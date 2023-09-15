@@ -1,3 +1,6 @@
+from utils.timeit import timeit
+
+@timeit
 def build_prompt(prompt_data, input_data):
     prompt = prompt_data['prompt']
     inputs = prompt_data["inputs"]

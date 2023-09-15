@@ -3,7 +3,9 @@ import logging
 
 from utils.build_prompt import build_prompt
 from utils.query_openai import query_openai_chat
+from utils.timeit import timeit
 
+@timeit
 def extract_topic_tags(section_txt, task_id_meta, prompt_data, section_id):
     inputs_data = {'article_text': section_txt}
     prompt = build_prompt(prompt_data, inputs_data)

@@ -2,7 +2,9 @@ import base64
 import logging
 
 from azure.storage.queue import QueueClient
+from utils.timeit import timeit
 
+@timeit
 def upload_to_queue(queue_message, queue_connection_str_secret, queue_name):
     queue_message_bytes = queue_message.encode('utf-8')
     queue_message_base64 = base64.b64encode(queue_message_bytes).decode('utf-8')

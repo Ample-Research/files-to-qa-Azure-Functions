@@ -2,9 +2,12 @@
   "scriptFile": "__init__.py",
   "bindings": [
     {
-      "name": "inputData",
-      "type": "activityTrigger",
-      "direction": "in"
+      "name": "msg",
+      "type": "queueTrigger",
+      "direction": "in",
+      "queueName": "%PROCESS_SECTION_QUEUE%",
+      "connection": "AzureWebJobsStorage",
+      "maxBatchSize": 1
     }
   ]
 }

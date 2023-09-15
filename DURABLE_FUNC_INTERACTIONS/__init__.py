@@ -15,7 +15,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     For now, it will just check runtime status and/or terminate an orchestrator
     '''
     try:
-        start_time, blob_connection_str_secret, queue_connection_str_secret, error_msg = init_function("DURABLE_FUNC_INTERACTIONS", "HTTP")
+        blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret = init_function("DURABLE_FUNC_INTERACTIONS", "HTTP")
 
         action = req.params.get('action')
         instance_id = req.params.get('instance_id') 
