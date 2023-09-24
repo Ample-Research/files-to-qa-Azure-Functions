@@ -50,7 +50,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "task_type": task_type
         }
 
-        upload_to_queue(json.dumps(queue_msg),queue_connection_str_secret, os.environ["PROCESS_FILE_QUEUE"])
+        upload_to_queue(json.dumps(queue_msg), queue_connection_str_secret, os.environ["PROCESS_FILE_QUEUE"])
 
         return func.HttpResponse(json.dumps({"task_id": task_id}), mimetype="application/json")
     

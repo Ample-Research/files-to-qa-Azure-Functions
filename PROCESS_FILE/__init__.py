@@ -39,5 +39,5 @@ def main(msg: func.QueueMessage) -> None:
 
     except Exception as e:
         logging.error(f"Failed PROCESS_FILE: {str(e)}")
-        update_task_id_meta(task_id, {"error_message": str(e)})
+        update_task_id_meta(task_id, {"error_message": str(e)}, table_connection_str_secret)
         raise e

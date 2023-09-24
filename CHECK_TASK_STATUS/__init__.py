@@ -26,11 +26,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         task_id = req.params.get('task_id')
         if not task_id:
             raise ValueError("Missing task_id in the request in CHECK_TASK_STATUS")
+        
         task_id_meta = read_from_table(task_id, "tasks", "tasks", table_connection_str_secret)
 
-        section_completion_percentage = 0
-        if task_id_meta["status"] == "section_processing_triggered":
-            section_completion_percentage = track_sections_completion(task_id, task_id_meta["num_sections"], table_connection_str_secret)
+        section_completion_percentage = track_sections_completion(task_id, task_id_meta["num_sections"], task_id_meta["status"], table_connection_str_secret)
 
         task_id_meta["completion_percentage"] = section_completion_percentage
 
