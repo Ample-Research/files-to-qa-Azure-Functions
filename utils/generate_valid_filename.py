@@ -1,5 +1,7 @@
 import re
+from utils.timeit import timeit
 
+@timeit
 def generate_valid_filename(filename_no_ext): # without the extension!
     valid_filename = re.sub(r'[\\/*?:"<>|]', "", filename_no_ext)
     valid_filename = valid_filename.replace(" ", "_")

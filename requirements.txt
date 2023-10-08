@@ -8,6 +8,7 @@ azure-keyvault-secrets
 azure-identity
 azure-storage-queue
 azure-storage-blob
+azure-data-tables
 uuid
 pdfminer.six
 python-docx
@@ -17,3 +18,4 @@ tiktoken
 tenacity
 pytest
 pandas
+ratelimit

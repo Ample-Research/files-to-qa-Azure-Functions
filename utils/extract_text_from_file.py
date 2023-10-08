@@ -1,7 +1,9 @@
 from io import BytesIO
 from docx import Document
 from pdfminer.high_level import extract_text
+from utils.timeit import timeit
 
+@timeit
 def extract_text_from_file(raw_file, filename):
     
     # Convert raw file data to a file-like object

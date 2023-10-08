@@ -1,6 +1,8 @@
 import json
 import logging
+from utils.timeit import timeit
 
+@timeit
 def create_QA_JSONL_str(questions, answers, task_id_meta, section_id):
 
     if len(questions) != len(answers):

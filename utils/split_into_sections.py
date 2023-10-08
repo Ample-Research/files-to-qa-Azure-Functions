@@ -9,7 +9,10 @@ except LookupError:
     logging.warning("Downloading Punkt! -- IF THIS IS NOT LOCAL, SOMETHING IS WRONG!")
     nltk.download('punkt')
 
-def split_into_sections(text, max_tokens=2500, threshhold_ratio = 0.8):
+from utils.timeit import timeit
+
+@timeit
+def split_into_sections(text, max_tokens=750, threshhold_ratio = 0.8):
     sections = []
     section_tokens = 0
     section_text = ""
