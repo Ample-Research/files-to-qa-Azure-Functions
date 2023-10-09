@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 
 import azure.functions as func
 from azure.storage.blob import BlobServiceClient
@@ -8,6 +9,7 @@ from utils.create_error_msg import create_error_msg
 from utils.read_from_table import read_from_table
 from utils.init_function import init_function
 from utils.check_sections_status import track_sections_completion
+from utils.upload_to_queue import upload_to_queue
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     '''
@@ -32,6 +34,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         section_completion_percentage = track_sections_completion(task_id, task_id_meta["num_sections"], task_id_meta["status"], table_connection_str_secret)
 
         task_id_meta["completion_percentage"] = section_completion_percentage
+
+        if task_id_meta["completion_percentage"] == 1 and task_id_meta["download_link"] == "":
+            queue_msg = {
+                "task_id": task_id,
+                "total_num_sections": task_id_meta["num_sections"],
+                "task_type": task_id_meta["task_type"],
+                "title": task_id_meta["title"]
+            }
+            upload_to_queue(json.dumps(queue_msg), queue_connection_str_secret, os.environ["COMBINE_SECTIONS_QUEUE"])
 
         return func.HttpResponse(json.dumps(task_id_meta), mimetype="application/json") # Return task meta-data to frontend
 

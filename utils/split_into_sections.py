@@ -31,7 +31,6 @@ def split_into_sections(text, max_tokens=750, threshhold_ratio = 0.8):
     adjusted_max_tokens = total_tokens // (num_sections + 1) if total_tokens % max_tokens else total_tokens // num_sections
   
     for sentence in sentences:
-
         words = sentence.split()
         while len(words) > 40:
             part_sentence = " ".join(words[:40])
