@@ -7,7 +7,7 @@
       "direction": "in",
       "queueName": "%PROCESS_SECTION_QUEUE%",
       "connection": "AzureWebJobsStorage",
-      "maxBatchSize": 1
+      "maxBatchSize": 10
     }
   ]
 }
