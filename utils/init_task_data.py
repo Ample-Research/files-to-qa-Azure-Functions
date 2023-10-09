@@ -32,7 +32,7 @@ def init_task_data(config_data, file_size_in_bytes, filename, table_connection_s
         # Status Tracking
         "tags": json.dumps([]),
         "status": "initiated",
-        "num_sections": 0.,
+        "num_sections": 0,
         "date_created": str(datetime.datetime.now()),
         "error_message": None,
         "file_size_in_bytes": file_size_in_bytes,

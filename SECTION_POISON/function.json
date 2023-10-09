@@ -1,0 +1,12 @@
+{
+  "scriptFile": "__init__.py",
+  "bindings": [
+    {
+      "name": "msg",
+      "type": "queueTrigger",
+      "direction": "in",
+      "queueName": "%POISON_SECTION_QUEUE%",
+      "connection": "AzureWebJobsStorage"
+    }
+  ]
+}

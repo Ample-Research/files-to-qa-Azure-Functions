@@ -26,7 +26,7 @@ def main(msg: func.QueueMessage) -> None:
     5. Re-runs if there is an error
     '''
     try:
-        blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret = init_function("PROCESS_SECTION", "ACTION")
+        blob_connection_str_secret, queue_connection_str_secret, table_connection_str_secret = init_function("PROCESS_SECTION", "QUEUE")
         
         msg_data = json.loads(msg.get_body().decode('utf-8'))
         section_id = msg_data["section_id"]
