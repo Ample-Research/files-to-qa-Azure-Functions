@@ -24,6 +24,9 @@ def main(mytimer: func.TimerRequest) -> None:
             response_data = response.json()
             task_id = response_data.get("task_id")
             logging.info(f'Successfully warmed up INITIATE_FILE_PROCESSING for task: {task_id}')
+            status_function_code = os.getenv('CHECK_STATUS_CODE')
+            status_url = f"https://ample-files-to-qa-development.azurewebsites.net/api/CHECK_TASK_STATUS?task_id={task_id}&code={status_function_code}"
+            response = requests.request("GET", status_url)
         else:
             logging.error('Failed to warm up INITIATE_FILE_PROCESSING in PING_INTERVAL')
 
